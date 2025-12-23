@@ -47,7 +47,7 @@ export interface UploadedModel {
   file: File;
   url: string;
   name: string;
-  type: string;
+  type: ".glb" | ".gltf" | ".obj" | ".stl";
 }
 
 export type ModelSource = "generated" | "uploaded";

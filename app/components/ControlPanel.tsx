@@ -11,10 +11,10 @@ interface ControlPanelProps {
   density: number;
   length: number;
   area: number;
-  show3D: boolean;
   showStreamlines: boolean;
   isAnimating: boolean;
 
+  onGeometryTypeChange: (type: GeometryType) => void;
   onThicknessChange: (v: number) => void;
   onCamberChange: (v: number) => void;
   onVelocityChange: (v: number) => void;
@@ -22,9 +22,8 @@ interface ControlPanelProps {
   onDensityChange: (v: number) => void;
   onLengthChange: (v: number) => void;
   onAreaChange: (v: number) => void;
-  onToggle3D: () => void;
-  onToggleStreamlines: () => void;
-  onToggleAnimation: () => void;
+  onShowStreamlinesChange: (v: boolean) => void;
+  onAnimatingChange: (v: boolean) => void;
 }
 
 /* =====================================================
@@ -55,7 +54,7 @@ const controls = {
   },
 };
 
-export function ControlPanel({
+export default function ControlPanel({
   mode,
   geometryType,
   thickness,
@@ -65,9 +64,9 @@ export function ControlPanel({
   density,
   length,
   area,
-  show3D,
   showStreamlines,
   isAnimating,
+  onGeometryTypeChange,
   onThicknessChange,
   onCamberChange,
   onVelocityChange,
@@ -75,9 +74,8 @@ export function ControlPanel({
   onDensityChange,
   onLengthChange,
   onAreaChange,
-  onToggle3D,
-  onToggleStreamlines,
-  onToggleAnimation,
+  onShowStreamlinesChange,
+  onAnimatingChange,
 }: ControlPanelProps) {
   const config = controls[mode];
   const disabled = config.disabled;
@@ -86,6 +84,20 @@ export function ControlPanel({
 
   return (
     <div className="w-full h-full p-4 space-y-6 text-sm">
+      {/* Geometry Type */}
+      <div>
+        <label className="font-medium">Geometry Type</label>
+        <select
+          value={geometryType}
+          onChange={(e) => onGeometryTypeChange(e.target.value as GeometryType)}
+          className="w-full rounded px-3 py-2 border border-gray-300 bg-white"
+        >
+          <option value="symmetric">Symmetric Airfoil</option>
+          <option value="cambered">Cambered Airfoil</option>
+          <option value="flat-plate">Flat Plate</option>
+        </select>
+      </div>
+
       {/* Header */}
       <div className="flex items-center gap-2 text-gray-800 font-semibold">
         <Settings size={16} />
@@ -200,14 +212,14 @@ export function ControlPanel({
       {/* Toggles */}
       <div className="pt-4 border-t space-y-2">
         <button
-          onClick={onToggleStreamlines}
+          onClick={() => onShowStreamlinesChange(!showStreamlines)}
           className="w-full rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 border"
         >
           {showStreamlines ? "Hide Flow Lines" : "Show Flow Lines"}
         </button>
 
         <button
-          onClick={onToggleAnimation}
+          onClick={() => onAnimatingChange(!isAnimating)}
           className="w-full rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 border"
         >
           {isAnimating ? "Pause Animation" : "Play Animation"}

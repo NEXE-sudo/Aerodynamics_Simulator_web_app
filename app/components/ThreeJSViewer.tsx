@@ -28,7 +28,14 @@ export default function ThreeJSViewer({
   const animationFrameRef = useRef<number | null>(null);
   const timeRef = useRef(0);
 
-  // Interaction state
+  const [showWireframe, setShowWireframe] = useState(false);
+
+  const [darkBackground, setDarkBackground] = useState(false);
+  const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
+  const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
+  const pointLightRef = useRef<THREE.PointLight | null>(null);
+  const [showLighting, setShowLighting] = useState(true);
+
   const [isDragging, setIsDragging] = useState(false);
   const [previousMousePosition, setPreviousMousePosition] = useState({
     x: 0,
@@ -37,12 +44,18 @@ export default function ThreeJSViewer({
   const rotationRef = useRef({ x: 0, y: 0 });
   const zoomRef = useRef(2.5);
 
+  // Helper visibility controls
+  const [showGrid, setShowGrid] = useState(true);
+  const [showAxes, setShowAxes] = useState(true);
+  const gridHelperRef = useRef<THREE.GridHelper | null>(null);
+  const axesHelperRef = useRef<THREE.AxesHelper | null>(null);
+
   // Initialize scene
   useEffect(() => {
     if (!mountRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf9fafb);
+    scene.background = new THREE.Color(darkBackground ? 0x1a1a1a : 0xf9fafb);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(
@@ -65,22 +78,26 @@ export default function ThreeJSViewer({
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
+    ambientLightRef.current = ambientLight;
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
+    directionalLightRef.current = directionalLight;
 
     const pointLight = new THREE.PointLight(0xffffff, 0.5);
     pointLight.position.set(-5, 5, -5);
     scene.add(pointLight);
+    pointLightRef.current = pointLight;
 
     const gridHelper = new THREE.GridHelper(4, 20, 0xe5e7eb, 0xf3f4f6);
     gridHelper.rotation.x = Math.PI / 2;
     scene.add(gridHelper);
+    gridHelperRef.current = gridHelper;
 
-    // Add axes helper
     const axesHelper = new THREE.AxesHelper(1);
     scene.add(axesHelper);
+    axesHelperRef.current = axesHelper;
 
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -122,6 +139,60 @@ export default function ThreeJSViewer({
       rendererRef.current?.dispose();
     };
   }, []);
+
+  // Toggle grid visibility
+  useEffect(() => {
+    if (gridHelperRef.current) {
+      gridHelperRef.current.visible = showGrid;
+    }
+  }, [showGrid]);
+
+  // Toggle axes visibility
+  useEffect(() => {
+    if (axesHelperRef.current) {
+      axesHelperRef.current.visible = showAxes;
+    }
+  }, [showAxes]);
+
+  // Toggle wireframe mode
+  useEffect(() => {
+    if (!geometryMeshRef.current) return;
+
+    const updateWireframe = (obj: THREE.Object3D) => {
+      if (obj instanceof THREE.Mesh) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach((mat) => {
+            mat.wireframe = showWireframe;
+          });
+        } else {
+          obj.material.wireframe = showWireframe;
+        }
+      }
+    };
+
+    if (geometryMeshRef.current instanceof THREE.Group) {
+      geometryMeshRef.current.traverse(updateWireframe);
+    } else {
+      updateWireframe(geometryMeshRef.current);
+    }
+  }, [showWireframe]);
+
+  // Update background color
+  useEffect(() => {
+    if (sceneRef.current) {
+      sceneRef.current.background = new THREE.Color(
+        darkBackground ? 0x1a1a1a : 0xf9fafb
+      );
+    }
+  }, [darkBackground]);
+
+  // Toggle lighting
+  useEffect(() => {
+    if (ambientLightRef.current) ambientLightRef.current.visible = showLighting;
+    if (directionalLightRef.current)
+      directionalLightRef.current.visible = showLighting;
+    if (pointLightRef.current) pointLightRef.current.visible = showLighting;
+  }, [showLighting]);
 
   // Handle mouse interactions
   useEffect(() => {
@@ -361,9 +432,14 @@ export default function ThreeJSViewer({
             sceneRef.current.add(mesh);
             geometryMeshRef.current = mesh;
           } else {
-            // GLB/GLTF - show placeholder with message
+            // GLB/GLTF - Basic parser (limited support without GLTFLoader)
+            console.warn(
+              "GLB/GLTF format: Showing simplified representation. For full model support, GLTFLoader is required."
+            );
+
+            // Create a representative mesh based on file size
             const group = new THREE.Group();
-            const geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 100, 16);
+            const geometry = new THREE.BoxGeometry(0.8, 0.2, 0.4);
             const material = new THREE.MeshPhongMaterial({
               color: 0x0d9488,
               emissive: 0x042f2e,
@@ -371,13 +447,32 @@ export default function ThreeJSViewer({
               shininess: 30,
             });
             const mesh = new THREE.Mesh(geometry, material);
+
+            // Add text notification
+            const canvas = document.createElement("canvas");
+            canvas.width = 512;
+            canvas.height = 128;
+            const ctx = canvas.getContext("2d")!;
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 24px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GLB/GLTF Preview", 256, 64);
+            ctx.font = "18px Arial";
+            ctx.fillText(uploadedModel.name, 256, 100);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const labelGeometry = new THREE.PlaneGeometry(1, 0.25);
+            const labelMaterial = new THREE.MeshBasicMaterial({
+              map: texture,
+              transparent: true,
+            });
+            const label = new THREE.Mesh(labelGeometry, labelMaterial);
+            label.position.y = 0.3;
+
             group.add(mesh);
+            group.add(label);
             sceneRef.current.add(group);
             geometryMeshRef.current = group;
-
-            console.log(
-              "GLB/GLTF format - placeholder shown. Install GLTFLoader for full support."
-            );
           }
         };
 
@@ -471,18 +566,80 @@ export default function ThreeJSViewer({
       <div ref={mountRef} className="w-full h-full cursor-move" />
 
       {/* Controls overlay */}
-      <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 shadow-lg text-xs">
-        <div className="font-semibold text-gray-900 mb-2">3D Controls</div>
-        <div className="space-y-1 text-gray-700">
-          <div>
-            🖱️ <strong>Click + Drag:</strong> Rotate
+      <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3">
+        <div>
+          <div className="font-semibold text-gray-900 mb-2">3D Controls</div>
+          <div className="space-y-1 text-gray-700">
+            <div>
+              🖱️ <strong>Click + Drag:</strong> Rotate
+            </div>
+            <div>
+              🔍 <strong>Scroll:</strong> Zoom
+            </div>
+            <div>
+              ▶️ <strong>Animation:</strong> {isAnimating ? "ON" : "OFF"}
+            </div>
           </div>
-          <div>
-            🔍 <strong>Scroll:</strong> Zoom
+        </div>
+
+        {/* Helper Toggles */}
+        <div className="pt-3 border-t border-gray-300">
+          <div className="font-semibold text-gray-900 mb-2">
+            Display Options
           </div>
-          <div>
-            ▶️ <strong>Animation:</strong> {isAnimating ? "ON" : "OFF"}
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+              <input
+                type="checkbox"
+                checked={showGrid}
+                onChange={(e) => setShowGrid(e.target.checked)}
+                className="w-4 h-4 accent-teal-600 cursor-pointer"
+              />
+              <span className="text-gray-700">Show Grid</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+              <input
+                type="checkbox"
+                checked={showAxes}
+                onChange={(e) => setShowAxes(e.target.checked)}
+                className="w-4 h-4 accent-teal-600 cursor-pointer"
+              />
+              <span className="text-gray-700">Show Axes</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+              <input
+                type="checkbox"
+                checked={showWireframe}
+                onChange={(e) => setShowWireframe(e.target.checked)}
+                className="w-4 h-4 accent-teal-600 cursor-pointer"
+              />
+              <span className="text-gray-700">Wireframe Mode</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+              <input
+                type="checkbox"
+                checked={darkBackground}
+                onChange={(e) => setDarkBackground(e.target.checked)}
+                className="w-4 h-4 accent-teal-600 cursor-pointer"
+              />
+              <span className="text-gray-700">Dark Background</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+              <input
+                type="checkbox"
+                checked={showLighting}
+                onChange={(e) => setShowLighting(e.target.checked)}
+                className="w-4 h-4 accent-teal-600 cursor-pointer"
+              />
+              <span className="text-gray-700">Scene Lighting</span>
+            </label>
           </div>
+        </div>
+
+        {/* Camera Info */}
+        <div className="pt-3 border-t border-gray-300 text-xs text-gray-500">
+          <div>Zoom: {zoomRef.current.toFixed(1)}x</div>
+          <div>Rotation: {(rotationRef.current.y * 57.3).toFixed(0)}°</div>
         </div>
       </div>
 

@@ -39,7 +39,7 @@ export default function LiveFeedbackPanel({
   previousResults,
   previousAngle,
   previousVelocity,
-}: LiveFeedbackPanelPanelProps) {
+}: LiveFeedbackPanelProps) {
   const generateFeedback = (): FeedbackMessage | null => {
     if (!previousResults || !previousAngle) return null;
 

@@ -35,8 +35,14 @@ export default function AeroPlatform() {
   const [previousAngle, setPreviousAngle] = useState<number | null>(null);
   const [previousVelocity, setPreviousVelocity] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
+  const [view2DProjection, setView2DProjection] = useState<"xy" | "xz" | "yz">(
+    "xy"
+  );
 
   // Visualization state
+  const [uploadedModel, setUploadedModel] = useState<UploadedModel | null>(
+    null
+  );
   const [isAnimating, setIsAnimating] = useState(true); // Start animating by default
   const [streamlines, setStreamlines] = useState<Point[][]>([]);
   const [pressureField, setPressureField] = useState<number[]>([]);
@@ -208,6 +214,10 @@ NOT suitable for engineering validation or critical design decisions.
               onShowStreamlinesChange={setShowStreamlines}
               onAnimatingChange={setIsAnimating}
             />
+            <ModelUploader
+              onModelUpload={setUploadedModel}
+              currentModel={uploadedModel}
+            />
 
             {/* Live Feedback - Learning Mode Only */}
             {mode === "learning" && results && (
@@ -226,25 +236,25 @@ NOT suitable for engineering validation or critical design decisions.
           {/* RIGHT CONTENT: Visualization + Results */}
           <main className="space-y-6">
             {/* Primary Visualization Canvas */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-gray-200 h-[600px]">
-              {/* View Mode Toggle */}
-              <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg p-2 flex gap-2">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-gray-200 h-[600px] relative">
+              {/* View Mode Toggle - Fixed positioning */}
+              <div className="absolute top-4 right-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 flex gap-2">
                 <button
                   onClick={() => setViewMode("2d")}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
+                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
                     viewMode === "2d"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   2D View
                 </button>
                 <button
                   onClick={() => setViewMode("3d")}
-                  className={`px-3 py-1 rounded text-sm font-medium ${
+                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
                     viewMode === "3d"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
+                      ? "bg-blue-600 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
                   3D View
@@ -252,7 +262,49 @@ NOT suitable for engineering validation or critical design decisions.
               </div>
 
               {viewMode === "2d" ? (
-                <VisualizationCanvas
+                <>
+                  {/* 2D Projection Controls - Only show if model uploaded */}
+                  {uploadedModel && (
+                    <div className="absolute top-4 left-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2">
+                      <div className="text-xs font-semibold text-gray-700 mb-2">Projection Plane</div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setView2DProjection('xy')}
+                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                            view2DProjection === 'xy'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Top view (XY plane)"
+                        >
+                          Top (XY)
+                        </button>
+                        <button
+                          onClick={() => setView2DProjection('xz')}
+                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                            view2DProjection === 'xz'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Front view (XZ plane)"
+                        >
+                          Front (XZ)
+                        </button>
+                        <button
+                          onClick={() => setView2DProjection('yz')}
+                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                            view2DProjection === 'yz'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                          title="Side view (YZ plane)"
+                        >
+                          Side (YZ)
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <VisualizationCanvas
                   geometry={geometry}
                   streamlines={streamlines}
                   pressureField={pressureField}
@@ -268,6 +320,7 @@ NOT suitable for engineering validation or critical design decisions.
                   streamlines={streamlines}
                   pressureField={pressureField}
                   isAnimating={isAnimating}
+                  uploadedModel={uploadedModel}
                 />
               )}
             </div>

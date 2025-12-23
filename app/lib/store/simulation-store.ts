@@ -4,6 +4,8 @@
  */
 
 import { create } from "zustand";
+import { SimulationResults } from "../../types";
+import { PhysicsEngine } from "../physics-engine";
 
 interface SimulationState {
   // Parameters

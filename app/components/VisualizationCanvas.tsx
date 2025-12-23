@@ -13,6 +13,8 @@ interface VisualizationCanvasProps {
   angleOfAttack: number;
   velocity: number;
   particleSystem: ParticleSystem | null;
+  uploadedModel?: UploadedModel | null;
+  projectionPlane?: "xy" | "xz" | "yz";
 }
 
 export default function VisualizationCanvas({
@@ -24,11 +26,134 @@ export default function VisualizationCanvas({
   angleOfAttack,
   velocity,
   particleSystem,
+  uploadedModel = null,
+  projectionPlane = "xy",
 }: VisualizationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const timeRef = useRef(0);
   const lastTimeRef = useRef(Date.now());
+
+  // Store 2D projection of uploaded model
+  const [projected2DPoints, setProjected2DPoints] = useState<Point[]>([]);
+
+  // Project 3D model to 2D when model or projection changes
+  useEffect(() => {
+    if (!uploadedModel) {
+      setProjected2DPoints([]);
+      return;
+    }
+
+    // Read and project the 3D model file
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (!e.target?.result) return;
+
+      if (uploadedModel.type === ".obj") {
+        const text = new TextDecoder().decode(e.target.result as ArrayBuffer);
+        const lines = text.split("\n");
+        const vertices: { x: number; y: number; z: number }[] = [];
+
+        // Parse vertices
+        lines.forEach((line) => {
+          const parts = line.trim().split(/\s+/);
+          if (parts[0] === "v") {
+            vertices.push({
+              x: parseFloat(parts[1]),
+              y: parseFloat(parts[2]),
+              z: parseFloat(parts[3]),
+            });
+          }
+        });
+
+        // Project to 2D based on selected plane
+        const projectedPoints: Point[] = vertices.map((v) => {
+          switch (projectionPlane) {
+            case "xy":
+              return { x: v.x, y: v.y }; // Top view
+            case "xz":
+              return { x: v.x, y: v.z }; // Front view
+            case "yz":
+              return { x: v.y, y: v.z }; // Side view
+            default:
+              return { x: v.x, y: v.y };
+          }
+        });
+
+        // Normalize to [0, 1] range for canvas
+        if (projectedPoints.length > 0) {
+          const xs = projectedPoints.map((p) => p.x);
+          const ys = projectedPoints.map((p) => p.y);
+          const minX = Math.min(...xs);
+          const maxX = Math.max(...xs);
+          const minY = Math.min(...ys);
+          const maxY = Math.max(...ys);
+          const rangeX = maxX - minX || 1;
+          const rangeY = maxY - minY || 1;
+
+          const normalized = projectedPoints.map((p) => ({
+            x: (p.x - minX) / rangeX,
+            y: (p.y - minY) / rangeY - 0.5, // Center vertically
+          }));
+
+          setProjected2DPoints(normalized);
+        }
+      } else if (uploadedModel.type === ".stl") {
+        // Similar STL parsing and projection
+        const data = new DataView(e.target.result as ArrayBuffer);
+        const triangles = data.getUint32(80, true);
+        const vertices: { x: number; y: number; z: number }[] = [];
+
+        let offset = 84;
+        for (let i = 0; i < triangles; i++) {
+          offset += 12; // Skip normal
+          for (let j = 0; j < 3; j++) {
+            vertices.push({
+              x: data.getFloat32(offset, true),
+              y: data.getFloat32(offset + 4, true),
+              z: data.getFloat32(offset + 8, true),
+            });
+            offset += 12;
+          }
+          offset += 2;
+        }
+
+        // Project and normalize (same as OBJ)
+        const projectedPoints: Point[] = vertices.map((v) => {
+          switch (projectionPlane) {
+            case "xy":
+              return { x: v.x, y: v.y };
+            case "xz":
+              return { x: v.x, y: v.z };
+            case "yz":
+              return { x: v.y, y: v.z };
+            default:
+              return { x: v.x, y: v.y };
+          }
+        });
+
+        if (projectedPoints.length > 0) {
+          const xs = projectedPoints.map((p) => p.x);
+          const ys = projectedPoints.map((p) => p.y);
+          const minX = Math.min(...xs);
+          const maxX = Math.max(...xs);
+          const minY = Math.min(...ys);
+          const maxY = Math.max(...ys);
+          const rangeX = maxX - minX || 1;
+          const rangeY = maxY - minY || 1;
+
+          const normalized = projectedPoints.map((p) => ({
+            x: (p.x - minX) / rangeX,
+            y: (p.y - minY) / rangeY - 0.5,
+          }));
+
+          setProjected2DPoints(normalized);
+        }
+      }
+    };
+
+    reader.readAsArrayBuffer(uploadedModel.file);
+  }, [uploadedModel, projectionPlane]);
 
   // Animation loop for streamline particles
   useEffect(() => {
@@ -85,15 +210,26 @@ export default function VisualizationCanvas({
       // Draw coordinate axes
       drawAxes(ctx, padding, availableWidth, availableHeight);
 
-      // Draw airfoil geometry with gradient
-      drawAirfoil(ctx, geometry, padding, availableWidth, availableHeight);
+      // Draw airfoil geometry OR uploaded model projection
+      if (uploadedModel && projected2DPoints.length > 0) {
+        drawUploadedModel(
+          ctx,
+          projected2DPoints,
+          padding,
+          availableWidth,
+          availableHeight
+        );
+      } else {
+        drawAirfoil(ctx, geometry, padding, availableWidth, availableHeight);
+      }
 
-      // Draw flow direction arrow
+      // Draw flow direction arrow - velocity scaled proportionally
+      const arrowLength = 30 + (velocity / 80) * 40; // Scale arrow with velocity
       drawFlowArrow(
         ctx,
         padding,
         canvasHeight / 2,
-        30,
+        arrowLength,
         angleOfAttack,
         velocity
       );
@@ -212,6 +348,54 @@ export default function VisualizationCanvas({
     ctx.stroke();
   };
 
+  const drawUploadedModel = (
+    ctx: CanvasRenderingContext2D,
+    points: Point[],
+    padding: number,
+    width: number,
+    height: number
+  ) => {
+    if (points.length === 0) return;
+
+    // Scale points to canvas
+    const scaledPoints = points.map((p) => ({
+      x: padding + p.x * width,
+      y: padding + height / 2 - p.y * height * 2,
+    }));
+
+    // Draw as point cloud or wireframe
+    ctx.strokeStyle = "#0891b2";
+    ctx.fillStyle = "#06b6d4";
+    ctx.lineWidth = 1;
+
+    // Draw points
+    scaledPoints.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Connect consecutive points (simple wireframe)
+      if (i > 0 && i % 3 === 0) {
+        // Every 3 points (triangles)
+        const prev = scaledPoints[i - 1];
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+    });
+
+    // Draw outline
+    ctx.strokeStyle = "#0369a1";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    scaledPoints.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+  };
+
   const drawStreamlines = (
     ctx: CanvasRenderingContext2D,
     streamlines: Point[][],
@@ -249,9 +433,12 @@ export default function VisualizationCanvas({
 
       ctx.stroke();
 
-      // Draw animated particles on streamlines
+      // Draw animated particles on streamlines - speed matches velocity
       if (line.length > 2) {
-        const particleIndex = Math.floor((time * 2) % line.length);
+        const speedFactor = velocity / 20; // Normalize to base velocity of 20 m/s
+        const particleIndex = Math.floor(
+          (time * 2 * speedFactor) % line.length
+        );
         const particle = line[particleIndex];
         const px = padding + particle.x * width;
         const py = padding + height / 2 - particle.y * height * 2;
@@ -408,6 +595,38 @@ export default function VisualizationCanvas({
     if (angle !== 0) {
       ctx.fillText(`α = ${angle.toFixed(1)}°`, endX, y + 15);
     }
+    // Draw pressure field around geometry
+    geometry.forEach((point, idx) => {
+      if (pressureField[idx] === undefined) return;
+
+      const normalized = (pressureField[idx] - minPressure) / pressureRange;
+
+      // Color mapping: Blue = low pressure (faster flow), Red = high pressure (slower flow)
+      let color: string;
+      if (normalized > 0.5) {
+        // High pressure - Red/Orange
+        const t = (normalized - 0.5) * 2;
+        color = `rgba(${Math.floor(220 + 35 * t)}, ${Math.floor(
+          50 + 100 * (1 - t)
+        )}, 50, ${0.3 + t * 0.3})`;
+      } else {
+        // Low pressure - Blue/Cyan
+        const t = normalized * 2;
+        color = `rgba(50, ${Math.floor(150 + 80 * t)}, ${Math.floor(
+          220 + 35 * (1 - t)
+        )}, ${0.3 + (1 - t) * 0.3})`;
+      }
+
+      ctx.fillStyle = color;
+      const x = padding + point.x * width;
+      const y = padding + height / 2 - point.y * height * 2;
+
+      // Size based on pressure magnitude
+      const radius = 3 + Math.abs(normalized - 0.5) * 4;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    });
   };
 
   return (
@@ -434,8 +653,15 @@ export default function VisualizationCanvas({
           <div className="space-y-1 text-gray-700">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>Airfoil Geometry</span>
+              <span>
+                {uploadedModel ? "Uploaded Model" : "Airfoil Geometry"}
+              </span>
             </div>
+            {uploadedModel && (
+              <div className="text-xs text-gray-500 mt-1">
+                Projection: {projectionPlane.toUpperCase()} plane
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 border-2 border-orange-500"></div>
               <span>Flow Direction</span>
