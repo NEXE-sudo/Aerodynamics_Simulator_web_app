@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { Point } from "../types";
+import React, { useEffect, useRef, useState } from "react";
+import { Point, UploadedModel } from "../types";
 import { ParticleSystem, Particle } from "../lib/visualization/particles";
 
 interface VisualizationCanvasProps {
@@ -489,28 +489,30 @@ export default function VisualizationCanvas({
 
       const normalized = (pressureField[idx] - minPressure) / pressureRange;
 
-      // Red for high pressure, blue for low pressure
+      // Color mapping: Blue = low pressure (faster flow), Red = high pressure (slower flow)
       let color: string;
       if (normalized > 0.5) {
-        // Red side
+        // High pressure - Red/Orange
         const t = (normalized - 0.5) * 2;
-        color = `rgba(255, ${Math.floor(150 * (1 - t))}, ${Math.floor(
-          100 * (1 - t)
-        )}, 0.15)`;
+        color = `rgba(${Math.floor(220 + 35 * t)}, ${Math.floor(
+          50 + 100 * (1 - t)
+        )}, 50, ${0.3 + t * 0.3})`;
       } else {
-        // Blue side
+        // Low pressure - Blue/Cyan
         const t = normalized * 2;
-        color = `rgba(${Math.floor(100 * (1 - t))}, ${Math.floor(
-          150 * (1 - t)
-        )}, 255, 0.15)`;
+        color = `rgba(50, ${Math.floor(150 + 80 * t)}, ${Math.floor(
+          220 + 35 * (1 - t)
+        )}, ${0.3 + (1 - t) * 0.3})`;
       }
 
       ctx.fillStyle = color;
       const x = padding + point.x * width;
       const y = padding + height / 2 - point.y * height * 2;
 
+      // Size based on pressure magnitude
+      const radius = 3 + Math.abs(normalized - 0.5) * 4;
       ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
       ctx.fill();
     });
   };
@@ -595,38 +597,6 @@ export default function VisualizationCanvas({
     if (angle !== 0) {
       ctx.fillText(`α = ${angle.toFixed(1)}°`, endX, y + 15);
     }
-    // Draw pressure field around geometry
-    geometry.forEach((point, idx) => {
-      if (pressureField[idx] === undefined) return;
-
-      const normalized = (pressureField[idx] - minPressure) / pressureRange;
-
-      // Color mapping: Blue = low pressure (faster flow), Red = high pressure (slower flow)
-      let color: string;
-      if (normalized > 0.5) {
-        // High pressure - Red/Orange
-        const t = (normalized - 0.5) * 2;
-        color = `rgba(${Math.floor(220 + 35 * t)}, ${Math.floor(
-          50 + 100 * (1 - t)
-        )}, 50, ${0.3 + t * 0.3})`;
-      } else {
-        // Low pressure - Blue/Cyan
-        const t = normalized * 2;
-        color = `rgba(50, ${Math.floor(150 + 80 * t)}, ${Math.floor(
-          220 + 35 * (1 - t)
-        )}, ${0.3 + (1 - t) * 0.3})`;
-      }
-
-      ctx.fillStyle = color;
-      const x = padding + point.x * width;
-      const y = padding + height / 2 - point.y * height * 2;
-
-      // Size based on pressure magnitude
-      const radius = 3 + Math.abs(normalized - 0.5) * 4;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fill();
-    });
   };
 
   return (

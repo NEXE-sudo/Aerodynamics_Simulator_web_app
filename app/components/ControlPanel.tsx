@@ -234,5 +234,3 @@ export default function ControlPanel({
     </div>
   );
 }
-
-export default ControlPanel;

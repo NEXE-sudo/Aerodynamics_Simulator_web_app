@@ -7,6 +7,8 @@ import { ParticleSystem } from "../lib/visualization/particles";
 import { FlowField } from "../lib/visualization/flow-field";
 import ThreeJSViewer from "../components/ThreeJSViewer";
 import { Mode, GeometryType, SimulationResults, Point } from "../types";
+import { UploadedModel } from "../types";
+import ModelUploader from "../components/ModelUploader";
 
 import Header from "../components/Header";
 import ModeSelector from "../components/ModeSelector";
@@ -266,36 +268,38 @@ NOT suitable for engineering validation or critical design decisions.
                   {/* 2D Projection Controls - Only show if model uploaded */}
                   {uploadedModel && (
                     <div className="absolute top-4 left-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2">
-                      <div className="text-xs font-semibold text-gray-700 mb-2">Projection Plane</div>
+                      <div className="text-xs font-semibold text-gray-700 mb-2">
+                        Projection Plane
+                      </div>
                       <div className="flex gap-1">
                         <button
-                          onClick={() => setView2DProjection('xy')}
+                          onClick={() => setView2DProjection("xy")}
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === 'xy'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            view2DProjection === "xy"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                           title="Top view (XY plane)"
                         >
                           Top (XY)
                         </button>
                         <button
-                          onClick={() => setView2DProjection('xz')}
+                          onClick={() => setView2DProjection("xz")}
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === 'xz'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            view2DProjection === "xz"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                           title="Front view (XZ plane)"
                         >
                           Front (XZ)
                         </button>
                         <button
-                          onClick={() => setView2DProjection('yz')}
+                          onClick={() => setView2DProjection("yz")}
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === 'yz'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            view2DProjection === "yz"
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                           }`}
                           title="Side view (YZ plane)"
                         >
@@ -305,15 +309,18 @@ NOT suitable for engineering validation or critical design decisions.
                     </div>
                   )}
                   <VisualizationCanvas
-                  geometry={geometry}
-                  streamlines={streamlines}
-                  pressureField={pressureField}
-                  particleSystem={particleSystemRef.current}
-                  isAnimating={isAnimating}
-                  showStreamlines={showStreamlines}
-                  angleOfAttack={angleOfAttack}
-                  velocity={velocity}
-                />
+                    geometry={geometry}
+                    streamlines={streamlines}
+                    pressureField={pressureField}
+                    particleSystem={particleSystemRef.current}
+                    isAnimating={isAnimating}
+                    showStreamlines={showStreamlines}
+                    angleOfAttack={angleOfAttack}
+                    velocity={velocity}
+                    uploadedModel={uploadedModel}
+                    projectionPlane={view2DProjection}
+                  />
+                </>
               ) : (
                 <ThreeJSViewer
                   geometry={geometry}
