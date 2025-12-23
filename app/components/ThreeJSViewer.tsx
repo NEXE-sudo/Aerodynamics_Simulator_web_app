@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Point, UploadedModel } from "../types";
 
+// @ts-ignore - CapsuleGeometry not available in r128
+
 interface ThreeJSViewerProps {
   geometry: Point[];
   streamlines: Point[][];

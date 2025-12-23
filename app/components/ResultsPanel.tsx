@@ -1,4 +1,4 @@
-import { SimulationResults, Mode } from "../types";
+import type { SimulationResults, Mode } from "../types";
 import { TrendingUp, Download, AlertCircle, Info } from "lucide-react";
 
 interface ResultsPanelProps {

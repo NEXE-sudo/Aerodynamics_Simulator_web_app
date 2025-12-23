@@ -49,19 +49,6 @@
   }
 }
 
-@layer base {
-  @layer base {
-    * {
-      border-color: hsl(var(--border));
-    }
-
-    body {
-      background-color: hsl(var(--background));
-      color: hsl(var(--foreground));
-    }
-  }
-}
-
 @layer utilities {
   .glass-effect {
     background-color: rgb(255 255 255 / 0.8);

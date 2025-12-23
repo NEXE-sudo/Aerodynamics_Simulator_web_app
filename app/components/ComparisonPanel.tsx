@@ -110,7 +110,7 @@ export default function ComparisonPanel({
       </div>
 
       {/* Flow Regime Comparison */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-700 rounded-lg">
         <div className="text-xs font-medium text-gray-700 mb-2">
           Flow Regime
         </div>
