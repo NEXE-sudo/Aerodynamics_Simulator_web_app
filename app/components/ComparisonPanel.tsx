@@ -14,7 +14,7 @@ export default function ComparisonPanel({
 }: ComparisonPanelProps) {
   if (!savedResults) {
     return (
-      <div className="glass-effect rounded-xl p-5 shadow-xl">
+      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-xl border-2 border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-3">
           <GitCompare size={20} className="text-teal-600" />
           <h3 className="text-lg font-semibold text-gray-900">

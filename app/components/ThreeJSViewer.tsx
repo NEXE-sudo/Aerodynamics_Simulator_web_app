@@ -104,13 +104,9 @@ export default function ThreeJSViewer({
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate);
 
-      if (isAnimating && cameraRef.current) {
+      if (isAnimating && geometryMeshRef.current) {
         timeRef.current += 0.01;
-
-        // Smooth rotation animation
-        if (geometryMeshRef.current) {
-          geometryMeshRef.current.rotation.y += 0.005;
-        }
+        geometryMeshRef.current.rotation.y = timeRef.current * 0.5;
       }
 
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
@@ -118,6 +114,10 @@ export default function ThreeJSViewer({
       }
     };
     animate();
+
+    useEffect(() => {
+      updateCameraPosition();
+    }, []);
 
     const handleResize = () => {
       if (!mountRef.current || !cameraRef.current || !rendererRef.current)
@@ -268,19 +268,16 @@ export default function ThreeJSViewer({
 
   // Load uploaded model
   useEffect(() => {
-    if (!sceneRef.current || !uploadedModel) return;
+    if (!sceneRef.current) return;
 
     // Remove old generated geometry
-    if (geometryMeshRef.current && !uploadedModel) {
+    if (geometryMeshRef.current) {
       sceneRef.current.remove(geometryMeshRef.current);
       if (geometryMeshRef.current instanceof THREE.Mesh) {
         geometryMeshRef.current.geometry.dispose();
         (geometryMeshRef.current.material as THREE.Material).dispose();
       }
     }
-
-    // Skip creating new geometry if we have an uploaded model
-    if (uploadedModel) return;
 
     const loadModel = async () => {
       try {

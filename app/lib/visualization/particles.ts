@@ -22,7 +22,7 @@ export class ParticleSystem {
 
   update(dt: number, velocity: number, alpha: number) {
     // Spawn new particles - rate proportional to velocity
-    const spawnRate = Math.floor((velocity / 20) * 5); // More particles at higher velocities
+    const spawnRate = Math.floor((velocity / 20) * 3); // More particles at higher velocities
     for (
       let i = 0;
       i < spawnRate && this.particles.length < this.maxParticles;
@@ -40,8 +40,8 @@ export class ParticleSystem {
       const alphaRad = (alpha * Math.PI) / 180;
 
       // Velocity components considering angle of attack
-      const baseVx = velocity * 0.01 * Math.cos(alphaRad);
-      const baseVy = velocity * 0.01 * Math.sin(alphaRad);
+      const baseVx = (velocity / 20) * 0.02 * Math.cos(alphaRad);
+      const baseVy = (velocity / 20) * 0.02 * Math.sin(alphaRad);
 
       // Add deflection based on distance to geometry
       const distToAirfoil = Math.min(
@@ -54,8 +54,8 @@ export class ParticleSystem {
       const accelerationFactor =
         distToAirfoil < 0.15 ? 1 + (0.15 - distToAirfoil) * 3 : 1;
 
-      p.x += baseVx * accelerationFactor * dt * 10;
-      p.y += baseVy * dt * 10;
+      p.x += baseVx * accelerationFactor * dt * 30;
+      p.y += (baseVy + (p.y > 0 ? -0.001 : 0.001)) * dt * 30;
 
       // Check collision with geometry
       if (this.isInsideGeometry(p.x, p.y)) return false;

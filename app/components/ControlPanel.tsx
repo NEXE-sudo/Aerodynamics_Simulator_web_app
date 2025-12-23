@@ -90,7 +90,7 @@ export default function ControlPanel({
         <select
           value={geometryType}
           onChange={(e) => onGeometryTypeChange(e.target.value as GeometryType)}
-          className="w-full rounded px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
         >
           <option value="symmetric">Symmetric Airfoil</option>
           <option value="cambered">Cambered Airfoil</option>
@@ -174,7 +174,7 @@ export default function ControlPanel({
             type="number"
             value={density}
             onChange={(e) => onDensityChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium"
+            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
@@ -204,7 +204,7 @@ export default function ControlPanel({
             type="number"
             value={area}
             onChange={(e) => onAreaChange(parseFloat(e.target.value))}
-            className="w-full rounded px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
