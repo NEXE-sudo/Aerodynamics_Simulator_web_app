@@ -185,7 +185,7 @@ NOT suitable for engineering validation or critical design decisions.
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 dark:bg-gray-950">
       <div className="max-w-[1600px] mx-auto p-6">
         <ThemeToggle />
         <div className="max-w-[1600px] mx-auto p-6"></div>

@@ -564,13 +564,15 @@ export default function ThreeJSViewer({
   }, [streamlines]);
 
   return (
-    <div className="relative w-full h-full bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 min-h-[600px]">
       <div ref={mountRef} className="w-full h-full cursor-move" />
 
       {/* Controls overlay */}
-      <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3">
+      <div className="absolute top-4 left-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-2">3D Controls</div>
+          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            3D Controls
+          </div>
           <div className="space-y-1 text-gray-700">
             <div>
               🖱️ <strong>Click + Drag:</strong> Rotate
