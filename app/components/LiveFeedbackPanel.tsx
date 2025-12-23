@@ -188,28 +188,28 @@ export default function LiveFeedbackPanel({
 
   const colorSchemes = {
     success: {
-      bg: "from-green-50 to-emerald-50",
-      border: "border-green-300",
-      text: "text-green-900",
-      titleText: "text-green-950",
+      bg: "from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30",
+      border: "border-green-300 dark:border-green-700",
+      text: "text-green-900 dark:text-green-300",
+      titleText: "text-green-950 dark:text-green-200",
     },
     info: {
-      bg: "from-blue-50 to-cyan-50",
-      border: "border-blue-300",
-      text: "text-blue-900",
-      titleText: "text-blue-950",
+      bg: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30",
+      border: "border-blue-300 dark:border-blue-700",
+      text: "text-blue-900 dark:text-blue-300",
+      titleText: "text-blue-950 dark:text-blue-200",
     },
     warning: {
-      bg: "from-amber-50 to-yellow-50",
-      border: "border-amber-400",
-      text: "text-amber-900",
-      titleText: "text-amber-950",
+      bg: "from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30",
+      border: "border-amber-400 dark:border-amber-600",
+      text: "text-amber-900 dark:text-amber-300",
+      titleText: "text-amber-950 dark:text-amber-200",
     },
     error: {
-      bg: "from-red-50 to-orange-50",
-      border: "border-red-400",
-      text: "text-red-900",
-      titleText: "text-red-950",
+      bg: "from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30",
+      border: "border-red-400 dark:border-red-600",
+      text: "text-red-900 dark:text-red-300",
+      titleText: "text-red-950 dark:text-red-200",
     },
   };
 

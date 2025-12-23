@@ -25,10 +25,12 @@ function MetricCard({
   icon,
 }: MetricCardProps) {
   const colorSchemes = {
-    blue: "bg-blue-50 border-blue-300 text-blue-700",
-    red: "bg-red-50 border-red-300 text-red-700",
-    purple: "bg-purple-50 border-purple-300 text-purple-700",
-    green: "bg-green-50 border-green-300 text-green-700",
+    blue: "bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300",
+    red: "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300",
+    purple:
+      "bg-purple-50 dark:bg-purple-950/30 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300",
+    green:
+      "bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300",
   };
 
   const iconSchemes = {
@@ -91,7 +93,7 @@ export default function ResultsPanel({
   };
 
   return (
-    <div className="bg-white border-2 border-gray-200 rounded-xl p-5 shadow-lg">
+    <div className="glass-effect rounded-xl p-6 shadow-xl border-2 border-gray-200/50 dark:border-gray-700/50">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
           <TrendingUp size={22} className="text-teal-600" />

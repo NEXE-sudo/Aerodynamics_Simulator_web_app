@@ -43,10 +43,10 @@ export default function ModeSelector({
           <button
             key={m.id}
             onClick={() => onModeChange(m.id)}
-            className={`group relative flex-shrink-0 px-6 py-4 rounded-xl font-semibold transition-all duration-200 border-2 ${
+            className={`group relative flex-shrink-0 px-6 py-4 rounded-xl font-semibold transition-all duration-300 border-2 hover:scale-105 ${
               mode === m.id
-                ? "bg-gradient-to-br from-teal-500 to-cyan-500 border-teal-600 text-white shadow-lg shadow-teal-500/30 scale-105"
-                : "bg-white border-gray-200 text-gray-600 hover:border-teal-300 hover:shadow-md hover:scale-102"
+                ? "bg-gradient-to-br from-teal-500 to-cyan-500 border-teal-600 text-white shadow-lg shadow-teal-500/30 animate-gradient"
+                : "glass-effect text-gray-700 dark:text-gray-300 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md"
             }`}
           >
             <div className="flex items-center gap-3 mb-1">

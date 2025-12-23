@@ -83,7 +83,7 @@ export default function ControlPanel({
   const isDisabled = (key: string) => disabled.includes(key);
 
   return (
-    <div className="w-full h-full p-4 space-y-6 text-sm">
+    <div className="w-full h-full p-5 space-y-6 text-sm glass-effect rounded-xl shadow-xl">
       {/* Geometry Type */}
       <div>
         <label className="font-medium">Geometry Type</label>
@@ -116,7 +116,7 @@ export default function ControlPanel({
           step={config.angle.step}
           value={angleOfAttack}
           onChange={(e) => onAngleChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-teal-600"
+          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
         />
       </div>
 
@@ -132,7 +132,7 @@ export default function ControlPanel({
           step={config.velocity.step}
           value={velocity}
           onChange={(e) => onVelocityChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-teal-600"
+          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
         />
       </div>
 
@@ -146,7 +146,7 @@ export default function ControlPanel({
           step={config.thickness.step}
           value={thickness}
           onChange={(e) => onThicknessChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-teal-600"
+          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
         />
       </div>
 
@@ -160,7 +160,7 @@ export default function ControlPanel({
           step={config.camber.step}
           value={camber}
           onChange={(e) => onCamberChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-teal-600"
+          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
         />
       </div>
 
@@ -174,7 +174,7 @@ export default function ControlPanel({
             type="number"
             value={density}
             onChange={(e) => onDensityChange(parseFloat(e.target.value))}
-            className="w-full rounded px-3 py-1 border border-gray-300"
+            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium"
           />
         </div>
       )}
@@ -189,7 +189,7 @@ export default function ControlPanel({
             type="number"
             value={length}
             onChange={(e) => onLengthChange(parseFloat(e.target.value))}
-            className="w-full rounded px-3 py-1 border border-gray-300"
+            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium"
           />
         </div>
       )}
