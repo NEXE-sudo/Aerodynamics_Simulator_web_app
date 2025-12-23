@@ -83,7 +83,7 @@ export default function ControlPanel({
   const isDisabled = (key: string) => disabled.includes(key);
 
   return (
-    <div className="w-full h-full p-5 space-y-6 text-sm glass-effect rounded-xl shadow-xl">
+    <div className="w-full h-fit p-5 space-y-6 text-sm glass-effect rounded-xl shadow-xl">
       {/* Geometry Type */}
       <div>
         <label className="font-medium">Geometry Type</label>
