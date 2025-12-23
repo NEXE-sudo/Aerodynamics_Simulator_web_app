@@ -198,7 +198,8 @@ export default function ThreeJSViewer({
 
   // Handle mouse interactions
   useEffect(() => {
-    if (!mountRef.current) return;
+    const canvas = rendererRef.current?.domElement;
+    if (!canvas) return;
 
     const handleMouseDown = (e: MouseEvent) => {
       setIsDragging(true);
@@ -214,14 +215,12 @@ export default function ThreeJSViewer({
       rotationRef.current.y += deltaX * 0.005;
       rotationRef.current.x += deltaY * 0.005;
 
-      // Limit vertical rotation
       rotationRef.current.x = Math.max(
         -Math.PI / 2,
         Math.min(Math.PI / 2, rotationRef.current.x)
       );
 
       updateCameraPosition();
-
       setPreviousMousePosition({ x: e.clientX, y: e.clientY });
     };
 
@@ -236,16 +235,15 @@ export default function ThreeJSViewer({
       updateCameraPosition();
     };
 
-    const canvas = mountRef.current;
     canvas.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-    canvas.addEventListener("wheel", handleWheel);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("wheel", handleWheel);
     };
   }, [isDragging, previousMousePosition]);
@@ -272,25 +270,17 @@ export default function ThreeJSViewer({
   useEffect(() => {
     if (!sceneRef.current || !uploadedModel) return;
 
-    // Remove old geometry
-    if (geometryMeshRef.current) {
+    // Remove old generated geometry
+    if (geometryMeshRef.current && !uploadedModel) {
       sceneRef.current.remove(geometryMeshRef.current);
       if (geometryMeshRef.current instanceof THREE.Mesh) {
         geometryMeshRef.current.geometry.dispose();
         (geometryMeshRef.current.material as THREE.Material).dispose();
-      } else if (geometryMeshRef.current instanceof THREE.Group) {
-        geometryMeshRef.current.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            child.geometry.dispose();
-            if (Array.isArray(child.material)) {
-              child.material.forEach((mat) => mat.dispose());
-            } else {
-              child.material.dispose();
-            }
-          }
-        });
       }
     }
+
+    // Skip creating new geometry if we have an uploaded model
+    if (uploadedModel) return;
 
     const loadModel = async () => {
       try {
@@ -489,13 +479,7 @@ export default function ThreeJSViewer({
 
   // Update generated geometry
   useEffect(() => {
-    if (
-      !sceneRef.current ||
-      !geometry ||
-      geometry.length === 0 ||
-      uploadedModel
-    )
-      return;
+    if (!sceneRef.current || !geometry || geometry.length === 0) return;
 
     if (geometryMeshRef.current) {
       sceneRef.current.remove(geometryMeshRef.current);
@@ -592,50 +576,60 @@ export default function ThreeJSViewer({
             Display Options
           </div>
           <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
               <input
                 type="checkbox"
                 checked={showGrid}
                 onChange={(e) => setShowGrid(e.target.checked)}
                 className="w-4 h-4 accent-teal-600 cursor-pointer"
               />
-              <span className="text-gray-700">Show Grid</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                Show Grid
+              </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
               <input
                 type="checkbox"
                 checked={showAxes}
                 onChange={(e) => setShowAxes(e.target.checked)}
                 className="w-4 h-4 accent-teal-600 cursor-pointer"
               />
-              <span className="text-gray-700">Show Axes</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                Show Axes
+              </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
               <input
                 type="checkbox"
                 checked={showWireframe}
                 onChange={(e) => setShowWireframe(e.target.checked)}
                 className="w-4 h-4 accent-teal-600 cursor-pointer"
               />
-              <span className="text-gray-700">Wireframe Mode</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                Wireframe Mode
+              </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
               <input
                 type="checkbox"
                 checked={darkBackground}
                 onChange={(e) => setDarkBackground(e.target.checked)}
                 className="w-4 h-4 accent-teal-600 cursor-pointer"
               />
-              <span className="text-gray-700">Dark Background</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                Dark Background
+              </span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition">
+            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
               <input
                 type="checkbox"
                 checked={showLighting}
                 onChange={(e) => setShowLighting(e.target.checked)}
                 className="w-4 h-4 accent-teal-600 cursor-pointer"
               />
-              <span className="text-gray-700">Scene Lighting</span>
+              <span className="text-gray-700 dark:text-gray-300">
+                Scene Lighting
+              </span>
             </label>
           </div>
         </div>

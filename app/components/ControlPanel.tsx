@@ -90,7 +90,7 @@ export default function ControlPanel({
         <select
           value={geometryType}
           onChange={(e) => onGeometryTypeChange(e.target.value as GeometryType)}
-          className="w-full rounded px-3 py-2 border border-gray-300 bg-white"
+          className="w-full rounded px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
         >
           <option value="symmetric">Symmetric Airfoil</option>
           <option value="cambered">Cambered Airfoil</option>
@@ -204,7 +204,7 @@ export default function ControlPanel({
             type="number"
             value={area}
             onChange={(e) => onAreaChange(parseFloat(e.target.value))}
-            className="w-full rounded px-3 py-1 border border-gray-300"
+            className="w-full rounded px-3 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
@@ -213,14 +213,14 @@ export default function ControlPanel({
       <div className="pt-4 border-t space-y-2">
         <button
           onClick={() => onShowStreamlinesChange(!showStreamlines)}
-          className="w-full rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 border"
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
         >
           {showStreamlines ? "Hide Flow Lines" : "Show Flow Lines"}
         </button>
 
         <button
           onClick={() => onAnimatingChange(!isAnimating)}
-          className="w-full rounded px-3 py-2 bg-gray-100 hover:bg-gray-200 border"
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
         >
           {isAnimating ? "Pause Animation" : "Play Animation"}
         </button>

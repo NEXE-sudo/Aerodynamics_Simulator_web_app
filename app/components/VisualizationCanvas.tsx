@@ -602,7 +602,7 @@ export default function VisualizationCanvas({
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       {/* Title Bar */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+      <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900">Flow Visualization</h3>
         <p className="text-xs text-gray-600 mt-1">
           2D Streamline and Pressure Field Analysis

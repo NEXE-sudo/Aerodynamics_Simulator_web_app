@@ -85,7 +85,7 @@ export default function ModelUploader({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
         <Upload size={20} className="text-teal-600" />
         Upload 3D Model
@@ -95,8 +95,8 @@ export default function ModelUploader({
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition ${
             dragActive
-              ? "border-teal-500 bg-teal-50"
-              : "border-gray-300 bg-gray-50"
+              ? "border-teal-500 bg-teal-50 dark:bg-teal-950"
+              : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800"
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -118,7 +118,7 @@ export default function ModelUploader({
             }`}
           />
 
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
             Drag and drop your 3D model here, or
           </p>
 

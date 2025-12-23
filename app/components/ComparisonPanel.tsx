@@ -103,7 +103,7 @@ export default function ComparisonPanel({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <GitCompare size={20} className="text-teal-600" />
         <h3 className="text-lg font-semibold text-gray-900">Comparison Mode</h3>

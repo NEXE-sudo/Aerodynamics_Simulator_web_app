@@ -359,8 +359,8 @@ NOT suitable for engineering validation or critical design decisions.
         </div>
 
         {/* Footer with Disclaimers */}
-        <footer className="mt-10 text-center border-t-2 border-gray-200 pt-6">
-          <p className="text-sm font-medium text-gray-700">
+        <footer className="mt-10 text-center border-t-2 border-gray-200 dark:border-gray-700 pt-6">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Interactive Aerodynamics Platform •{" "}
             <span className="text-amber-600 font-bold">
               Approximate Analytical Model
