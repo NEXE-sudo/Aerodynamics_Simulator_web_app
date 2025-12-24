@@ -603,8 +603,10 @@ export default function VisualizationCanvas({
     <div className="w-full h-full flex flex-col bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
       {/* Title Bar */}
       <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="font-semibold text-gray-900">Flow Visualization</h3>
-        <p className="text-xs text-gray-600 mt-1">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+          Flow Visualization
+        </h3>
+        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
           2D Streamline and Pressure Field Analysis
         </p>
       </div>
@@ -618,9 +620,11 @@ export default function VisualizationCanvas({
         />
 
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 rounded-lg p-3 border border-gray-200 text-xs">
-          <div className="font-semibold text-gray-900 mb-2">Legend</div>
-          <div className="space-y-1 text-gray-700">
+        <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg p-3 border border-gray-200 dark:border-gray-700 text-xs">
+          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Legend
+          </div>
+          <div className="space-y-1 text-gray-700 dark:text-gray-300">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
               <span>
@@ -628,7 +632,7 @@ export default function VisualizationCanvas({
               </span>
             </div>
             {uploadedModel && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Projection: {projectionPlane.toUpperCase()} plane
               </div>
             )}
@@ -652,8 +656,10 @@ export default function VisualizationCanvas({
         </div>
 
         {/* Info Box */}
-        <div className="absolute top-4 right-4 bg-white bg-opacity-90 rounded-lg p-3 border border-gray-200 text-xs text-gray-700">
-          <div className="font-semibold text-gray-900 mb-1">Canvas Stats</div>
+        <div className="absolute top-4 right-4 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg p-3 border border-gray-200 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300">
+          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-1">
+            Canvas Stats
+          </div>
           <div className="space-y-0.5">
             <div>Points: {geometry.length}</div>
             <div>Streamlines: {streamlines.length}</div>

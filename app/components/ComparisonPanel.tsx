@@ -17,12 +17,12 @@ export default function ComparisonPanel({
       <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-xl border-2 border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-3">
           <GitCompare size={20} className="text-teal-600" />
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Comparison Mode
           </h3>
         </div>
         <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
             No saved configuration to compare against.
           </p>
           <button
@@ -60,9 +60,11 @@ export default function ComparisonPanel({
         : diff > 0;
 
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-3">
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">{label}</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {label}
+          </span>
           <span
             className={`text-xs font-bold ${
               isImprovement ? "text-green-600" : "text-red-600"
@@ -73,15 +75,19 @@ export default function ComparisonPanel({
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <div className="text-xs text-gray-500">Current</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Current
+            </div>
             <div className="text-lg font-bold text-teal-600">
               {currentVal.toFixed(3)}
               {unit}
             </div>
           </div>
           <div>
-            <div className="text-xs text-gray-500">Baseline</div>
-            <div className="text-lg font-bold text-gray-700">
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Baseline
+            </div>
+            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
               {savedVal.toFixed(3)}
               {unit}
             </div>
@@ -106,23 +112,25 @@ export default function ComparisonPanel({
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
         <GitCompare size={20} className="text-teal-600" />
-        <h3 className="text-lg font-semibold text-gray-900">Comparison Mode</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Comparison Mode
+        </h3>
       </div>
 
       {/* Flow Regime Comparison */}
       <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-700 rounded-lg">
-        <div className="text-xs font-medium text-gray-700 mb-2">
+        <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">
           Flow Regime
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           <div>
-            <span className="text-gray-600">Current:</span>
+            <span className="text-gray-600 dark:text-gray-400">Current:</span>
             <div className="font-semibold text-blue-700">
               {currentResults.regime.type}
             </div>
           </div>
           <div>
-            <span className="text-gray-600">Baseline:</span>
+            <span className="text-gray-600 dark:text-gray-400">Baseline:</span>
             <div className="font-semibold text-gray-700">
               {savedResults.regime.type}
             </div>
@@ -162,33 +170,33 @@ export default function ComparisonPanel({
       </div>
 
       {/* Reynolds and Stability Comparison */}
-      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-200">
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-          <div className="text-xs text-gray-600 mb-1 font-medium">
+      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-700 rounded-lg p-3">
+          <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">
             Reynolds Number
           </div>
-          <div className="text-lg font-bold text-purple-700">
+          <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
             {currentResults.reynolds.toExponential(2)}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             vs {savedResults.reynolds.toExponential(2)}
           </div>
         </div>
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-          <div className="text-xs text-gray-600 mb-1 font-medium">
+        <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-3">
+          <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">
             Stability
           </div>
-          <div className="text-lg font-bold text-indigo-700">
+          <div className="text-lg font-bold text-indigo-700 dark:text-indigo-400">
             {currentResults.stability}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             vs {savedResults.stability}
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200">
+      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={onSaveCurrent}
           className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded transition text-sm font-medium flex items-center justify-center gap-2"

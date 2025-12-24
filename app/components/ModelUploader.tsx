@@ -86,7 +86,7 @@ export default function ModelUploader({
 
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
         <Upload size={20} className="text-teal-600" />
         Upload 3D Model
       </h3>
@@ -134,15 +134,15 @@ export default function ModelUploader({
           </p>
         </div>
       ) : (
-        <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
+        <div className="bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileIcon size={24} className="text-teal-600" />
               <div>
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {currentModel.name}
                 </p>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   {currentModel.type.toUpperCase()} file
                 </p>
               </div>
@@ -158,8 +158,10 @@ export default function ModelUploader({
         </div>
       )}
 
-      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-xs text-gray-700">
-        <p className="font-semibold text-blue-900 mb-1">Note:</p>
+      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-700 rounded text-xs text-gray-700 dark:text-gray-300">
+        <p className="font-semibold text-blue-900 dark:text-blue-300 mb-1">
+          Note:
+        </p>
         <p>
           Uploaded models will replace the generated airfoil geometry in the 3D
           view. Aerodynamic calculations will still use the generated geometry.

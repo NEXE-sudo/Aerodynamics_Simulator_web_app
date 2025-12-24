@@ -93,9 +93,9 @@ export default function ResultsPanel({
   };
 
   return (
-    <div className="glass-effect rounded-xl p-6 shadow-xl border-2 border-gray-200/50 dark:border-gray-700/50">
+    <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-xl border-2 border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
           <TrendingUp size={22} className="text-teal-600" />
           Simulation Results
         </h3>
@@ -182,25 +182,25 @@ export default function ResultsPanel({
 
       {/* Status Row */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <div className="text-xs text-gray-600 font-semibold mb-1 flex items-center gap-1">
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">
             <Info size={12} />
             Stability
           </div>
           <div
             className={`text-lg font-bold ${getStabilityColor(
               results.stability
-            )}`}
+            )} dark:opacity-90`}
           >
             {results.stability.toUpperCase()}
           </div>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
           <div className="text-xs text-gray-600 font-semibold mb-1">
             Dynamic Pressure
           </div>
-          <div className="text-lg font-bold text-gray-700">
+          <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
             {results.dynamicPressure.toFixed(1)} Pa
           </div>
         </div>

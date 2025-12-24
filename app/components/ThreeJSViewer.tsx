@@ -115,10 +115,6 @@ export default function ThreeJSViewer({
     };
     animate();
 
-    useEffect(() => {
-      updateCameraPosition();
-    }, []);
-
     const handleResize = () => {
       if (!mountRef.current || !cameraRef.current || !rendererRef.current)
         return;
@@ -140,6 +136,10 @@ export default function ThreeJSViewer({
       }
       rendererRef.current?.dispose();
     };
+  }, []);
+
+  useEffect(() => {
+    updateCameraPosition();
   }, []);
 
   // Toggle grid visibility
@@ -270,7 +270,7 @@ export default function ThreeJSViewer({
   useEffect(() => {
     if (!sceneRef.current) return;
 
-    // Remove old generated geometry
+    // Remove old geometry
     if (geometryMeshRef.current) {
       sceneRef.current.remove(geometryMeshRef.current);
       if (geometryMeshRef.current instanceof THREE.Mesh) {
@@ -278,6 +278,8 @@ export default function ThreeJSViewer({
         (geometryMeshRef.current.material as THREE.Material).dispose();
       }
     }
+
+    if (!uploadedModel) return;
 
     const loadModel = async () => {
       try {
@@ -477,6 +479,7 @@ export default function ThreeJSViewer({
   // Update generated geometry
   useEffect(() => {
     if (!sceneRef.current || !geometry || geometry.length === 0) return;
+    if (uploadedModel) return; // Skip if model is uploaded
 
     if (geometryMeshRef.current) {
       sceneRef.current.remove(geometryMeshRef.current);
@@ -515,7 +518,7 @@ export default function ThreeJSViewer({
     mesh.position.z = -0.15;
     sceneRef.current.add(mesh);
     geometryMeshRef.current = mesh;
-  }, [geometry, pressureField, uploadedModel]);
+  }, [geometry, pressureField]);
 
   // Update streamlines
   useEffect(() => {
@@ -549,12 +552,12 @@ export default function ThreeJSViewer({
       <div ref={mountRef} className="w-full h-full cursor-move" />
 
       {/* Controls overlay */}
-      <div className="absolute top-4 left-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3">
+      <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3 border border-gray-200 dark:border-gray-700">
         <div>
           <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
             3D Controls
           </div>
-          <div className="space-y-1 text-gray-700">
+          <div className="space-y-1 text-gray-700 dark:text-gray-300">
             <div>
               🖱️ <strong>Click + Drag:</strong> Rotate
             </div>
@@ -569,7 +572,7 @@ export default function ThreeJSViewer({
 
         {/* Helper Toggles */}
         <div className="pt-3 border-t border-gray-300">
-          <div className="font-semibold text-gray-900 mb-2">
+          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
             Display Options
           </div>
           <div className="space-y-2">
@@ -632,7 +635,7 @@ export default function ThreeJSViewer({
         </div>
 
         {/* Camera Info */}
-        <div className="pt-3 border-t border-gray-300 text-xs text-gray-500">
+        <div className="pt-3 border-t border-gray-300 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400">
           <div>Zoom: {zoomRef.current.toFixed(1)}x</div>
           <div>Rotation: {(rotationRef.current.y * 57.3).toFixed(0)}°</div>
         </div>

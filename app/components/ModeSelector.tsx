@@ -46,7 +46,7 @@ export default function ModeSelector({
             className={`group relative flex-shrink-0 px-6 py-4 rounded-xl font-semibold transition-all duration-300 border-2 hover:scale-105 ${
               mode === m.id
                 ? "bg-gradient-to-br from-teal-500 to-cyan-500 border-teal-600 text-white shadow-lg shadow-teal-500/30 animate-gradient"
-                : "glass-effect text-gray-700 dark:text-gray-300 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md"
+                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-md"
             }`}
           >
             <div className="flex items-center gap-3 mb-1">
@@ -57,7 +57,9 @@ export default function ModeSelector({
             </div>
             <p
               className={`text-xs ${
-                mode === m.id ? "text-teal-50" : "text-gray-500"
+                mode === m.id
+                  ? "text-teal-50"
+                  : "text-gray-500 dark:text-gray-400"
               }`}
             >
               {m.description}

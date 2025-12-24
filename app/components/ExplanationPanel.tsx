@@ -73,34 +73,40 @@ export default function ExplanationPanel({
   const stallWarning = getStallWarning();
 
   return (
-    <div className="bg-white border-2 border-blue-300 rounded-lg p-4 shadow-sm">
-      <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+    <div className="bg-white dark:bg-gray-900 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-4 shadow-sm">
+      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3 flex items-center gap-2">
         <BookOpen size={20} />
         Understanding What&apos;s Happening
       </h3>
 
       {/* Main Explanation */}
       <div className="space-y-3">
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-          <h4 className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-1">
+        <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3 border border-blue-200 dark:border-blue-700">
+          <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-300 mb-1 flex items-center gap-1">
             <Info size={16} />
             Angle of Attack Effect
           </h4>
-          <p className="text-sm text-gray-700">{getAngleExplanation()}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            {getAngleExplanation()}
+          </p>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
           <h4 className="text-sm font-semibold text-gray-900 mb-1">
             Drag Behavior
           </h4>
-          <p className="text-sm text-gray-700">{getDragExplanation()}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            {getDragExplanation()}
+          </p>
         </div>
 
         <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
           <h4 className="text-sm font-semibold text-purple-900 mb-1">
             Overall Efficiency
           </h4>
-          <p className="text-sm text-gray-700">{getEfficiencyExplanation()}</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            {getEfficiencyExplanation()}
+          </p>
         </div>
 
         {/* Stall Warning */}

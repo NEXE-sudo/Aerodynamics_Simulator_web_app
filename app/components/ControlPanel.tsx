@@ -83,14 +83,16 @@ export default function ControlPanel({
   const isDisabled = (key: string) => disabled.includes(key);
 
   return (
-    <div className="w-full h-fit p-5 space-y-6 text-sm glass-effect rounded-xl shadow-xl">
+    <div className="w-full h-fit p-5 space-y-6 text-sm bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl">
       {/* Geometry Type */}
       <div>
-        <label className="font-medium">Geometry Type</label>
+        <label className="font-medium text-gray-900 dark:text-gray-100">
+          Geometry Type
+        </label>
         <select
           value={geometryType}
           onChange={(e) => onGeometryTypeChange(e.target.value as GeometryType)}
-          className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
+          className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
         >
           <option value="symmetric">Symmetric Airfoil</option>
           <option value="cambered">Cambered Airfoil</option>
@@ -99,14 +101,14 @@ export default function ControlPanel({
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-2 text-gray-800 font-semibold">
+      <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 font-semibold">
         <Settings size={16} />
         Simulation Controls
       </div>
 
       {/* Angle of Attack */}
       <div>
-        <label className="font-medium">
+        <label className="font-medium text-gray-900 dark:text-gray-100">
           Angle of Attack (°): {angleOfAttack.toFixed(1)}
         </label>
         <input
@@ -122,7 +124,7 @@ export default function ControlPanel({
 
       {/* Velocity */}
       <div>
-        <label className="font-medium">
+        <label className="font-medium text-gray-900 dark:text-gray-100">
           Velocity (m/s): {velocity.toFixed(1)}
         </label>
         <input
@@ -138,7 +140,9 @@ export default function ControlPanel({
 
       {/* Thickness */}
       <div>
-        <label className="font-medium">Thickness: {thickness.toFixed(3)}</label>
+        <label className="font-medium text-gray-900 dark:text-gray-100">
+          Thickness: {thickness.toFixed(3)}
+        </label>
         <input
           type="range"
           min={config.thickness.min}
@@ -152,7 +156,9 @@ export default function ControlPanel({
 
       {/* Camber */}
       <div>
-        <label className="font-medium">Camber: {camber.toFixed(3)}</label>
+        <label className="font-medium text-gray-900 dark:text-gray-100">
+          Camber: {camber.toFixed(3)}
+        </label>
         <input
           type="range"
           min={config.camber.min}
@@ -167,14 +173,14 @@ export default function ControlPanel({
       {/* Density */}
       {!isDisabled("density") && (
         <div>
-          <label className="font-medium">
+          <label className="font-medium text-gray-900 dark:text-gray-100">
             Air Density (kg/m³): {density.toFixed(2)}
           </label>
           <input
             type="number"
             value={density}
             onChange={(e) => onDensityChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
+            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
@@ -182,14 +188,14 @@ export default function ControlPanel({
       {/* Length */}
       {!isDisabled("length") && (
         <div>
-          <label className="font-medium">
+          <label className="font-medium text-gray-900 dark:text-gray-100">
             Reference Length (m): {length.toFixed(2)}
           </label>
           <input
             type="number"
             value={length}
             onChange={(e) => onLengthChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium"
+            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
@@ -197,37 +203,37 @@ export default function ControlPanel({
       {/* Area */}
       {!isDisabled("area") && (
         <div>
-          <label className="font-medium">
+          <label className="font-medium text-gray-900 dark:text-gray-100">
             Reference Area (m²): {area.toFixed(2)}
           </label>
           <input
             type="number"
             value={area}
             onChange={(e) => onAreaChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 glass-effect hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
+            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
           />
         </div>
       )}
 
       {/* Toggles */}
-      <div className="pt-4 border-t space-y-2">
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
         <button
           onClick={() => onShowStreamlinesChange(!showStreamlines)}
-          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 font-medium"
         >
           {showStreamlines ? "Hide Flow Lines" : "Show Flow Lines"}
         </button>
 
         <button
           onClick={() => onAnimatingChange(!isAnimating)}
-          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100"
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 font-medium"
         >
           {isAnimating ? "Pause Animation" : "Play Animation"}
         </button>
       </div>
 
       {/* Info */}
-      <div className="flex items-start gap-2 text-xs text-gray-500 pt-4">
+      <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 pt-4">
         <Info size={14} />
         Values are approximate and depend on the selected simulation mode.
       </div>

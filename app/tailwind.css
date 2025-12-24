@@ -29,17 +29,6 @@
 }
 
 @layer utilities {
-  .glass-effect {
-    background-color: rgb(255 255 255 / 0.8);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgb(229 231 235 / 0.5);
-  }
-
-  .dark .glass-effect {
-    background-color: rgb(17 24 39 / 0.8);
-    border-color: rgb(55 65 81 / 0.5);
-  }
-
   .text-gradient {
     background-image: linear-gradient(to right, #14b8a6, #06b6d4);
     -webkit-background-clip: text;

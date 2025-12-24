@@ -185,10 +185,9 @@ NOT suitable for engineering validation or critical design decisions.
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300 dark:bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
       <div className="max-w-[1600px] mx-auto p-6">
         <ThemeToggle />
-        <div className="max-w-[1600px] mx-auto p-6"></div>
         <Header />
         <ModeSelector mode={mode} onModeChange={setMode} />
 
@@ -241,15 +240,15 @@ NOT suitable for engineering validation or critical design decisions.
           {/* RIGHT CONTENT: Visualization + Results */}
           <main className="space-y-6">
             {/* Primary Visualization Canvas */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2 border-gray-200 h-[600px] relative">
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 h-[600px] relative">
               {/* View Mode Toggle - Fixed positioning */}
-              <div className="absolute top-4 right-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 flex gap-2">
+              <div className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-2 flex gap-2 border border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => setViewMode("2d")}
                   className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
                     viewMode === "2d"
                       ? "bg-blue-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
                   2D View
@@ -259,7 +258,7 @@ NOT suitable for engineering validation or critical design decisions.
                   className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
                     viewMode === "3d"
                       ? "bg-blue-600 text-white shadow-md"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
                   3D View
@@ -270,8 +269,8 @@ NOT suitable for engineering validation or critical design decisions.
                 <>
                   {/* 2D Projection Controls - Only show if model uploaded */}
                   {uploadedModel && (
-                    <div className="absolute top-4 left-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2">
-                      <div className="text-xs font-semibold text-gray-700 mb-2">
+                    <div className="absolute top-4 left-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200 dark:border-gray-700">
+                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Projection Plane
                       </div>
                       <div className="flex gap-1">
@@ -280,7 +279,7 @@ NOT suitable for engineering validation or critical design decisions.
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
                             view2DProjection === "xy"
                               ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                           title="Top view (XY plane)"
                         >
@@ -291,7 +290,7 @@ NOT suitable for engineering validation or critical design decisions.
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
                             view2DProjection === "xz"
                               ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                           title="Front view (XZ plane)"
                         >
@@ -302,7 +301,7 @@ NOT suitable for engineering validation or critical design decisions.
                           className={`px-3 py-1.5 rounded text-xs font-medium transition ${
                             view2DProjection === "yz"
                               ? "bg-blue-600 text-white"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
                           title="Side view (YZ plane)"
                         >
@@ -362,15 +361,15 @@ NOT suitable for engineering validation or critical design decisions.
         <footer className="mt-10 text-center border-t-2 border-gray-200 dark:border-gray-700 pt-6">
           <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Interactive Aerodynamics Platform •{" "}
-            <span className="text-amber-600 font-bold">
+            <span className="text-amber-600 dark:text-amber-500 font-bold">
               Approximate Analytical Model
             </span>
           </p>
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
             Thin airfoil theory + empirical drag corrections • Educational
             visualization only
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             Not for engineering validation or critical design decisions
           </p>
         </footer>
