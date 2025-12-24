@@ -15,6 +15,7 @@ interface VisualizationCanvasProps {
   particleSystem: ParticleSystem | null;
   uploadedModel?: UploadedModel | null;
   projectionPlane?: "xy" | "xz" | "yz";
+  onProjectionChange?: (plane: "xy" | "xz" | "yz") => void;
 }
 
 export default function VisualizationCanvas({
@@ -28,6 +29,7 @@ export default function VisualizationCanvas({
   particleSystem,
   uploadedModel = null,
   projectionPlane = "xy",
+  onProjectionChange,
 }: VisualizationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
@@ -311,8 +313,28 @@ export default function VisualizationCanvas({
   ) => {
     if (geometry.length === 0) return;
 
+    // Apply projection to generated geometry
+    // Generated geometry is 2D (x, y), treat as 3D with z=0
+    let projectedGeometry = geometry;
+
+    if (projectionPlane !== "xy") {
+      projectedGeometry = geometry.map((p) => {
+        // Assume z = 0 for generated 2D airfoil
+        const point3D = { x: p.x, y: p.y, z: 0 };
+
+        switch (projectionPlane) {
+          case "xz": // Front view - show x vs z
+            return { x: point3D.x, y: point3D.z };
+          case "yz": // Side view - show y vs z
+            return { x: point3D.y, y: point3D.z };
+          default:
+            return { x: point3D.x, y: point3D.y };
+        }
+      });
+    }
+
     // Scale geometry to canvas
-    const points = geometry.map((p) => ({
+    const points = projectedGeometry.map((p) => ({
       x: padding + p.x * width,
       y: padding + height / 2 - p.y * height * 2,
     }));
@@ -619,6 +641,53 @@ export default function VisualizationCanvas({
           style={{ display: "block" }}
         />
 
+        {/* Projection Plane Selector */}
+        <div className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200 dark:border-gray-700">
+          <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            View Plane
+          </div>
+          <div className="flex gap-1">
+            <button
+              onClick={() => onProjectionChange?.("xy")}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                projectionPlane === "xy"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+              title="Top view (XY plane)"
+            >
+              XY
+            </button>
+            <button
+              onClick={() => onProjectionChange?.("xz")}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                projectionPlane === "xz"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+              title="Front view (XZ plane)"
+            >
+              XZ
+            </button>
+            <button
+              onClick={() => onProjectionChange?.("yz")}
+              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
+                projectionPlane === "yz"
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+              title="Side view (YZ plane)"
+            >
+              YZ
+            </button>
+          </div>
+          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-400">
+            {projectionPlane === "xy" && "Top: Width × Height"}
+            {projectionPlane === "xz" && "Front: Width × Depth"}
+            {projectionPlane === "yz" && "Side: Height × Depth"}
+          </div>
+        </div>
+
         {/* Legend */}
         <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 rounded-lg p-3 border border-gray-200 dark:border-gray-700 text-xs">
           <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -650,6 +719,17 @@ export default function VisualizationCanvas({
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-cyan-400 rounded-full"></div>
                 <span>Flow Particles</span>
+              </div>
+            )}
+            {projectionPlane !== "xy" && (
+              <div className="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600">
+                <div className="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                  📐 Projection: {projectionPlane.toUpperCase()} Plane
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {projectionPlane === "xz" && "Front view (X vs Z)"}
+                  {projectionPlane === "yz" && "Side view (Y vs Z)"}
+                </div>
               </div>
             )}
           </div>

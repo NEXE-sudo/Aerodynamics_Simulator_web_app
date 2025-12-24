@@ -267,49 +267,6 @@ NOT suitable for engineering validation or critical design decisions.
 
               {viewMode === "2d" ? (
                 <>
-                  {/* 2D Projection Controls - Only show if model uploaded */}
-                  {uploadedModel && (
-                    <div className="absolute top-4 left-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200 dark:border-gray-700">
-                      <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Projection Plane
-                      </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => setView2DProjection("xy")}
-                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === "xy"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          }`}
-                          title="Top view (XY plane)"
-                        >
-                          Top (XY)
-                        </button>
-                        <button
-                          onClick={() => setView2DProjection("xz")}
-                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === "xz"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          }`}
-                          title="Front view (XZ plane)"
-                        >
-                          Front (XZ)
-                        </button>
-                        <button
-                          onClick={() => setView2DProjection("yz")}
-                          className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                            view2DProjection === "yz"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                          }`}
-                          title="Side view (YZ plane)"
-                        >
-                          Side (YZ)
-                        </button>
-                      </div>
-                    </div>
-                  )}
                   <VisualizationCanvas
                     geometry={geometry}
                     streamlines={streamlines}
@@ -321,6 +278,7 @@ NOT suitable for engineering validation or critical design decisions.
                     velocity={velocity}
                     uploadedModel={uploadedModel}
                     projectionPlane={view2DProjection}
+                    onProjectionChange={setView2DProjection}
                   />
                 </>
               ) : (

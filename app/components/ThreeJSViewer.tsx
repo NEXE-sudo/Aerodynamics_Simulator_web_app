@@ -202,18 +202,20 @@ export default function ThreeJSViewer({
     if (!canvas) return;
 
     const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
       setIsDragging(true);
       setPreviousMousePosition({ x: e.clientX, y: e.clientY });
     };
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging || !cameraRef.current) return;
+      e.preventDefault();
 
       const deltaX = e.clientX - previousMousePosition.x;
       const deltaY = e.clientY - previousMousePosition.y;
 
-      rotationRef.current.y += deltaX * 0.005;
-      rotationRef.current.x += deltaY * 0.005;
+      rotationRef.current.y += deltaX * 0.01;
+      rotationRef.current.x += deltaY * 0.01;
 
       rotationRef.current.x = Math.max(
         -Math.PI / 2,
@@ -224,26 +226,29 @@ export default function ThreeJSViewer({
       setPreviousMousePosition({ x: e.clientX, y: e.clientY });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
       setIsDragging(false);
     };
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      zoomRef.current += e.deltaY * 0.001;
+      e.stopPropagation();
+      zoomRef.current += e.deltaY * 0.002;
       zoomRef.current = Math.max(1, Math.min(10, zoomRef.current));
       updateCameraPosition();
     };
 
+    // Attach to canvas AND window for reliable capture
     canvas.addEventListener("mousedown", handleMouseDown);
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
       canvas.removeEventListener("mousedown", handleMouseDown);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("wheel", handleWheel);
     };
   }, [isDragging, previousMousePosition]);
@@ -549,10 +554,14 @@ export default function ThreeJSViewer({
 
   return (
     <div className="relative w-full h-full bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 min-h-[600px]">
-      <div ref={mountRef} className="w-full h-full cursor-move" />
+      <div
+        ref={mountRef}
+        className="w-full h-full"
+        style={{ touchAction: "none" }}
+      />
 
       {/* Controls overlay */}
-      <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3 border border-gray-200 dark:border-gray-700">
+      <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3 border border-gray-200 dark:border-gray-700 pointer-events-auto">
         <div>
           <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
             3D Controls
