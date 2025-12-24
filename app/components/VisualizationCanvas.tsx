@@ -4,6 +4,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { Point, UploadedModel } from "../types";
 import { ParticleSystem, Particle } from "../lib/visualization/particles";
 
+type ProjectionFace =
+  | "xy-top"
+  | "xy-bottom"
+  | "xz-front"
+  | "xz-back"
+  | "yz-left"
+  | "yz-right";
+
 interface VisualizationCanvasProps {
   geometry: Point[];
   streamlines: Point[][];
@@ -37,7 +45,34 @@ export default function VisualizationCanvas({
   const lastTimeRef = useRef(Date.now());
 
   // Store 2D projection of uploaded model
+  const [projectionFace, setProjectionFace] =
+    useState<ProjectionFace>("xy-top");
+
   const [projected2DPoints, setProjected2DPoints] = useState<Point[]>([]);
+
+  const projectPoint3DTo2D = (
+    point: { x: number; y: number; z?: number },
+    face: ProjectionFace
+  ): Point => {
+    const z = point.z || 0;
+
+    switch (face) {
+      case "xy-top": // Looking down (positive Z)
+        return { x: point.x, y: point.y };
+      case "xy-bottom": // Looking up (negative Z)
+        return { x: -point.x, y: point.y };
+      case "xz-front": // Looking from front (positive Y)
+        return { x: point.x, y: z };
+      case "xz-back": // Looking from back (negative Y)
+        return { x: -point.x, y: z };
+      case "yz-left": // Looking from left (positive X)
+        return { x: point.y, y: z };
+      case "yz-right": // Looking from right (negative X)
+        return { x: -point.y, y: z };
+      default:
+        return { x: point.x, y: point.y };
+    }
+  };
 
   // Project 3D model to 2D when model or projection changes
   useEffect(() => {
@@ -68,19 +103,10 @@ export default function VisualizationCanvas({
           }
         });
 
-        // Project to 2D based on selected plane
-        const projectedPoints: Point[] = vertices.map((v) => {
-          switch (projectionPlane) {
-            case "xy":
-              return { x: v.x, y: v.y }; // Top view
-            case "xz":
-              return { x: v.x, y: v.z }; // Front view
-            case "yz":
-              return { x: v.y, y: v.z }; // Side view
-            default:
-              return { x: v.x, y: v.y };
-          }
-        });
+        // Project to 2D based on selected face
+        const projectedPoints: Point[] = vertices.map((v) =>
+          projectPoint3DTo2D(v, projectionFace)
+        );
 
         // Normalize to [0, 1] range for canvas
         if (projectedPoints.length > 0) {
@@ -95,13 +121,13 @@ export default function VisualizationCanvas({
 
           const normalized = projectedPoints.map((p) => ({
             x: (p.x - minX) / rangeX,
-            y: (p.y - minY) / rangeY - 0.5, // Center vertically
+            y: (p.y - minY) / rangeY - 0.5,
           }));
 
           setProjected2DPoints(normalized);
         }
       } else if (uploadedModel.type === ".stl") {
-        // Similar STL parsing and projection
+        // Similar STL parsing
         const data = new DataView(e.target.result as ArrayBuffer);
         const triangles = data.getUint32(80, true);
         const vertices: { x: number; y: number; z: number }[] = [];
@@ -120,19 +146,10 @@ export default function VisualizationCanvas({
           offset += 2;
         }
 
-        // Project and normalize (same as OBJ)
-        const projectedPoints: Point[] = vertices.map((v) => {
-          switch (projectionPlane) {
-            case "xy":
-              return { x: v.x, y: v.y };
-            case "xz":
-              return { x: v.x, y: v.z };
-            case "yz":
-              return { x: v.y, y: v.z };
-            default:
-              return { x: v.x, y: v.y };
-          }
-        });
+        // Project and normalize
+        const projectedPoints: Point[] = vertices.map((v) =>
+          projectPoint3DTo2D(v, projectionFace)
+        );
 
         if (projectedPoints.length > 0) {
           const xs = projectedPoints.map((p) => p.x);
@@ -155,7 +172,7 @@ export default function VisualizationCanvas({
     };
 
     reader.readAsArrayBuffer(uploadedModel.file);
-  }, [uploadedModel, projectionPlane]);
+  }, [uploadedModel, projectionFace]);
 
   // Animation loop for streamline particles
   useEffect(() => {
@@ -313,25 +330,11 @@ export default function VisualizationCanvas({
   ) => {
     if (geometry.length === 0) return;
 
-    // Apply projection to generated geometry
-    // Generated geometry is 2D (x, y), treat as 3D with z=0
-    let projectedGeometry = geometry;
-
-    if (projectionPlane !== "xy") {
-      projectedGeometry = geometry.map((p) => {
-        // Assume z = 0 for generated 2D airfoil
-        const point3D = { x: p.x, y: p.y, z: 0 };
-
-        switch (projectionPlane) {
-          case "xz": // Front view - show x vs z
-            return { x: point3D.x, y: point3D.z };
-          case "yz": // Side view - show y vs z
-            return { x: point3D.y, y: point3D.z };
-          default:
-            return { x: point3D.x, y: point3D.y };
-        }
-      });
-    }
+    // Project geometry based on current face
+    const projectedGeometry = geometry.map((p) => {
+      const point3D = { x: p.x, y: p.y, z: 0 };
+      return projectPoint3DTo2D(point3D, projectionFace);
+    });
 
     // Scale geometry to canvas
     const points = projectedGeometry.map((p) => ({
@@ -379,7 +382,7 @@ export default function VisualizationCanvas({
   ) => {
     if (points.length === 0) return;
 
-    // Scale points to canvas
+    // Scale points to canvas (points are already projected)
     const scaledPoints = points.map((p) => ({
       x: padding + p.x * width,
       y: padding + height / 2 - p.y * height * 2,
@@ -398,7 +401,6 @@ export default function VisualizationCanvas({
 
       // Connect consecutive points (simple wireframe)
       if (i > 0 && i % 3 === 0) {
-        // Every 3 points (triangles)
         const prev = scaledPoints[i - 1];
         ctx.beginPath();
         ctx.moveTo(prev.x, prev.y);
@@ -427,37 +429,51 @@ export default function VisualizationCanvas({
     const width = ctx.canvas.width - 2 * padding;
     const height = ctx.canvas.height - 2 * padding;
 
-    streamlines.forEach((line, idx) => {
-      // Color based on streamline index (rainbow effect)
-      const hue = (idx / Math.max(1, streamlines.length - 1)) * 360;
-      const color = `hsla(${hue}, 70%, 50%, 0.6)`;
+    // Import the CFD solver for colors
+    const { CFDFlowSolver } = require("../lib/physics/cfd-simple");
 
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
+    // Get streamlines with speed data
+    const streamlinesData =
+      require("../lib/visualization/flow-field").FlowField.generateStreamlinesWithData(
+        geometry,
+        velocity,
+        angleOfAttack,
+        streamlines.length
+      );
+
+    streamlinesData.forEach((lineData: any, idx: number) => {
+      const line = lineData.points;
+      const speeds = lineData.speeds;
+
+      ctx.lineWidth = 2;
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
-      ctx.beginPath();
-      let started = false;
+      // Draw line segments with varying colors based on speed
+      for (let i = 0; i < line.length - 1; i++) {
+        const p1 = line[i];
+        const p2 = line[i + 1];
 
-      for (let i = 0; i < line.length; i++) {
-        const p = line[i];
-        const x = padding + p.x * width;
-        const y = padding + height / 2 - p.y * height * 2;
+        const x1 = padding + p1.x * width;
+        const y1 = padding + height / 2 - p1.y * height * 2;
+        const x2 = padding + p2.x * width;
+        const y2 = padding + height / 2 - p2.y * height * 2;
 
-        if (i === 0 || Math.abs(x - (started ? padding : 0)) > width * 2) {
-          ctx.moveTo(x, y);
-          started = true;
-        } else {
-          ctx.lineTo(x, y);
-        }
+        // Get color based on local speed
+        const speed = speeds[i] || velocity;
+        const pressure = lineData.pressures[i] || 0;
+        const color = CFDFlowSolver.getFlowLineColor(speed, pressure, velocity);
+
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
       }
 
-      ctx.stroke();
-
-      // Draw animated particles on streamlines - speed matches velocity
+      // Animated particle on streamline
       if (line.length > 2) {
-        const speedFactor = velocity / 20; // Normalize to base velocity of 20 m/s
+        const speedFactor = velocity / 20;
         const particleIndex = Math.floor(
           (time * 2 * speedFactor) % line.length
         );
@@ -465,26 +481,17 @@ export default function VisualizationCanvas({
         const px = padding + particle.x * width;
         const py = padding + height / 2 - particle.y * height * 2;
 
+        const speed = speeds[particleIndex] || velocity;
+        const pressure = lineData.pressures[particleIndex] || 0;
+        const color = CFDFlowSolver.getFlowLineColor(speed, pressure, velocity);
+
         ctx.fillStyle = color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = color;
         ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
         ctx.fill();
-
-        // Particle trail
-        ctx.globalAlpha = 0.3;
-        for (let i = Math.max(0, particleIndex - 5); i < particleIndex; i++) {
-          const trailParticle = line[i];
-          const trailX = padding + trailParticle.x * width;
-          const trailY = padding + height / 2 - trailParticle.y * height * 2;
-          const trailAlpha = (i - Math.max(0, particleIndex - 5)) / 5;
-
-          ctx.globalAlpha = 0.3 * trailAlpha;
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(trailX, trailY, 2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
       }
     });
   };
@@ -641,50 +648,112 @@ export default function VisualizationCanvas({
           style={{ display: "block" }}
         />
 
-        {/* Projection Plane Selector */}
-        <div className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-2 border border-gray-200 dark:border-gray-700">
+        {/* Enhanced Projection Face Selector */}
+        <div className="absolute top-4 right-4 z-50 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-lg p-3 border border-gray-200 dark:border-gray-700">
           <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            View Plane
+            View Face
           </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => onProjectionChange?.("xy")}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                projectionPlane === "xy"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
-              title="Top view (XY plane)"
-            >
-              XY
-            </button>
-            <button
-              onClick={() => onProjectionChange?.("xz")}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                projectionPlane === "xz"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
-              title="Front view (XZ plane)"
-            >
-              XZ
-            </button>
-            <button
-              onClick={() => onProjectionChange?.("yz")}
-              className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-                projectionPlane === "yz"
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
-              title="Side view (YZ plane)"
-            >
-              YZ
-            </button>
+
+          {/* XY Plane Views */}
+          <div className="mb-2">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              XY Plane
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setProjectionFace("xy-top")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "xy-top"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Top view (+Z)"
+              >
+                Top
+              </button>
+              <button
+                onClick={() => setProjectionFace("xy-bottom")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "xy-bottom"
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Bottom view (-Z)"
+              >
+                Bot
+              </button>
+            </div>
           </div>
+
+          {/* XZ Plane Views */}
+          <div className="mb-2">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              XZ Plane
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setProjectionFace("xz-front")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "xz-front"
+                    ? "bg-green-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Front view (+Y)"
+              >
+                Front
+              </button>
+              <button
+                onClick={() => setProjectionFace("xz-back")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "xz-back"
+                    ? "bg-green-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Back view (-Y)"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+
+          {/* YZ Plane Views */}
+          <div className="mb-2">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              YZ Plane
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setProjectionFace("yz-left")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "yz-left"
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Left view (+X)"
+              >
+                Left
+              </button>
+              <button
+                onClick={() => setProjectionFace("yz-right")}
+                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                  projectionFace === "yz-right"
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+                title="Right view (-X)"
+              >
+                Right
+              </button>
+            </div>
+          </div>
+
           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-400">
-            {projectionPlane === "xy" && "Top: Width × Height"}
-            {projectionPlane === "xz" && "Front: Width × Depth"}
-            {projectionPlane === "yz" && "Side: Height × Depth"}
+            {projectionFace === "xy-top" && "↓ Top: Width × Height"}
+            {projectionFace === "xy-bottom" && "↑ Bottom: Width × Height"}
+            {projectionFace === "xz-front" && "← Front: Width × Depth"}
+            {projectionFace === "xz-back" && "→ Back: Width × Depth"}
+            {projectionFace === "yz-left" && "← Left: Height × Depth"}
+            {projectionFace === "yz-right" && "→ Right: Height × Depth"}
           </div>
         </div>
 

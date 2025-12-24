@@ -31,6 +31,19 @@ export default function ThreeJSViewer({
   const timeRef = useRef(0);
 
   const [showWireframe, setShowWireframe] = useState(false);
+  const [showBoundingBox, setShowBoundingBox] = useState(false);
+  const [showNormals, setShowNormals] = useState(false);
+  const [shadingMode, setShadingMode] = useState<"smooth" | "flat">("smooth");
+  const [backgroundColor, setBackgroundColor] = useState("#f0f0f0");
+  const [ambientIntensity, setAmbientIntensity] = useState(0.6);
+  const [directionalIntensity, setDirectionalIntensity] = useState(0.8);
+  const [gridSize, setGridSize] = useState(10);
+  const [axisSize, setAxisSize] = useState(2);
+  const [showFlowLines, setShowFlowLines] = useState(true);
+  const panRef = useRef({ x: 0, y: 0 });
+  const flowLinesRef = useRef<THREE.Group | null>(null);
+  const boundingBoxRef = useRef<THREE.BoxHelper | null>(null);
+  const normalsHelperRef = useRef<THREE.VertexNormalsHelper | null>(null);
 
   const [darkBackground, setDarkBackground] = useState(false);
   const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
@@ -214,13 +227,19 @@ export default function ThreeJSViewer({
       const deltaX = e.clientX - previousMousePosition.x;
       const deltaY = e.clientY - previousMousePosition.y;
 
-      rotationRef.current.y += deltaX * 0.01;
-      rotationRef.current.x += deltaY * 0.01;
-
-      rotationRef.current.x = Math.max(
-        -Math.PI / 2,
-        Math.min(Math.PI / 2, rotationRef.current.x)
-      );
+      if (e.shiftKey) {
+        // Pan mode
+        panRef.current.x -= deltaX * 0.01;
+        panRef.current.y += deltaY * 0.01;
+      } else {
+        // Rotate mode
+        rotationRef.current.y += deltaX * 0.01;
+        rotationRef.current.x += deltaY * 0.01;
+        rotationRef.current.x = Math.max(
+          -Math.PI / 2,
+          Math.min(Math.PI / 2, rotationRef.current.x)
+        );
+      }
 
       updateCameraPosition();
       setPreviousMousePosition({ x: e.clientX, y: e.clientY });
@@ -267,8 +286,12 @@ export default function ThreeJSViewer({
       Math.cos(rotationRef.current.y) *
       Math.cos(rotationRef.current.x);
 
-    cameraRef.current.position.set(x, y + 0.5, z);
-    cameraRef.current.lookAt(0, 0, 0);
+    cameraRef.current.position.set(
+      x + panRef.current.x,
+      y + panRef.current.y,
+      z
+    );
+    cameraRef.current.lookAt(panRef.current.x, panRef.current.y, 0);
   };
 
   // Load uploaded model
@@ -552,6 +575,46 @@ export default function ThreeJSViewer({
     });
   }, [streamlines]);
 
+  useEffect(() => {
+    if (!sceneRef.current || streamlines.length === 0) return;
+
+    if (flowLinesRef.current) {
+      sceneRef.current.remove(flowLinesRef.current);
+      flowLinesRef.current.children.forEach((child) => {
+        if (child instanceof THREE.Line) {
+          child.geometry.dispose();
+          (child.material as THREE.Material).dispose();
+        }
+      });
+    }
+
+    const flowGroup = new THREE.Group();
+
+    streamlines.forEach((line, idx) => {
+      const points = line.map((p) => new THREE.Vector3(p.x - 0.5, p.y, 0));
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+      // Velocity-based color: high velocity = red, low = blue
+      const velocityFactor = velocity / 40; // Normalize to 0-1
+      const hue = 0.6 - Math.min(velocityFactor * 0.3, 0.3); // Blue to red
+      const color = new THREE.Color().setHSL(hue, 0.8, 0.5);
+
+      const material = new THREE.LineBasicMaterial({
+        color: color,
+        opacity: 0.7,
+        transparent: true,
+        linewidth: 2,
+      });
+
+      const flowLine = new THREE.Line(geometry, material);
+      flowGroup.add(flowLine);
+    });
+
+    sceneRef.current.add(flowGroup);
+    flowLinesRef.current = flowGroup;
+    flowLinesRef.current.visible = showFlowLines;
+  }, [streamlines, velocity]);
+
   return (
     <div className="relative w-full h-full bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 min-h-[600px]">
       <div
@@ -560,101 +623,264 @@ export default function ThreeJSViewer({
         style={{ touchAction: "none" }}
       />
 
-      {/* Controls overlay */}
-      <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg p-3 shadow-lg text-xs space-y-3 border border-gray-200 dark:border-gray-700 pointer-events-auto">
-        <div>
-          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            3D Controls
+      {/* Enhanced Controls Panel */}
+      <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 backdrop-blur-sm rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-[calc(100%-2rem)] overflow-y-auto pointer-events-auto">
+        <div className="p-3 space-y-4 text-xs max-w-[280px]">
+          {/* Camera Controls Info */}
+          <div>
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Camera Controls
+            </div>
+            <div className="space-y-1 text-gray-700 dark:text-gray-300 text-xs">
+              <div>
+                🖱️ <strong>Drag:</strong> Rotate
+              </div>
+              <div>
+                ⇧ <strong>Shift + Drag:</strong> Pan
+              </div>
+              <div>
+                🔍 <strong>Scroll:</strong> Zoom
+              </div>
+            </div>
+            <button
+              onClick={resetCamera}
+              className="mt-2 w-full bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded text-xs font-medium transition"
+            >
+              Reset Camera
+            </button>
           </div>
-          <div className="space-y-1 text-gray-700 dark:text-gray-300">
-            <div>
-              🖱️ <strong>Click + Drag:</strong> Rotate
-            </div>
-            <div>
-              🔍 <strong>Scroll:</strong> Zoom
-            </div>
-            <div>
-              ▶️ <strong>Animation:</strong> {isAnimating ? "ON" : "OFF"}
-            </div>
-          </div>
-        </div>
 
-        {/* Helper Toggles */}
-        <div className="pt-3 border-t border-gray-300">
-          <div className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Display Options
+          {/* Display Section */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Display
+            </div>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showGrid}
+                  onChange={(e) => setShowGrid(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Grid</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showAxes}
+                  onChange={(e) => setShowAxes(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">Axes</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showFlowLines}
+                  onChange={(e) => setShowFlowLines(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">
+                  Flow Lines
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showBoundingBox}
+                  onChange={(e) => setShowBoundingBox(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">
+                  Bounding Box
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showNormals}
+                  onChange={(e) => setShowNormals(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">
+                  Normals
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1.5 rounded transition">
+                <input
+                  type="checkbox"
+                  checked={showWireframe}
+                  onChange={(e) => setShowWireframe(e.target.checked)}
+                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                />
+                <span className="text-gray-700 dark:text-gray-300">
+                  Wireframe
+                </span>
+              </label>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-              <input
-                type="checkbox"
-                checked={showGrid}
-                onChange={(e) => setShowGrid(e.target.checked)}
-                className="w-4 h-4 accent-teal-600 cursor-pointer"
-              />
-              <span className="text-gray-700 dark:text-gray-300">
-                Show Grid
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-              <input
-                type="checkbox"
-                checked={showAxes}
-                onChange={(e) => setShowAxes(e.target.checked)}
-                className="w-4 h-4 accent-teal-600 cursor-pointer"
-              />
-              <span className="text-gray-700 dark:text-gray-300">
-                Show Axes
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-              <input
-                type="checkbox"
-                checked={showWireframe}
-                onChange={(e) => setShowWireframe(e.target.checked)}
-                className="w-4 h-4 accent-teal-600 cursor-pointer"
-              />
-              <span className="text-gray-700 dark:text-gray-300">
-                Wireframe Mode
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-              <input
-                type="checkbox"
-                checked={darkBackground}
-                onChange={(e) => setDarkBackground(e.target.checked)}
-                className="w-4 h-4 accent-teal-600 cursor-pointer"
-              />
-              <span className="text-gray-700 dark:text-gray-300">
-                Dark Background
-              </span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-              <input
-                type="checkbox"
-                checked={showLighting}
-                onChange={(e) => setShowLighting(e.target.checked)}
-                className="w-4 h-4 accent-teal-600 cursor-pointer"
-              />
-              <span className="text-gray-700 dark:text-gray-300">
-                Scene Lighting
-              </span>
-            </label>
-          </div>
-        </div>
 
-        {/* Camera Info */}
-        <div className="pt-3 border-t border-gray-300 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400">
-          <div>Zoom: {zoomRef.current.toFixed(1)}x</div>
-          <div>Rotation: {(rotationRef.current.y * 57.3).toFixed(0)}°</div>
+          {/* Shading Section */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Shading
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShadingMode("smooth")}
+                className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition ${
+                  shadingMode === "smooth"
+                    ? "bg-teal-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                Smooth
+              </button>
+              <button
+                onClick={() => setShadingMode("flat")}
+                className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition ${
+                  shadingMode === "flat"
+                    ? "bg-teal-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                Flat
+              </button>
+            </div>
+          </div>
+
+          {/* Helper Sizes */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Helper Sizes
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 block mb-1">
+                  Grid Size: {gridSize}
+                </label>
+                <input
+                  type="range"
+                  min="5"
+                  max="20"
+                  step="5"
+                  value={gridSize}
+                  onChange={(e) => setGridSize(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-600"
+                />
+              </div>
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 block mb-1">
+                  Axis Size: {axisSize}
+                </label>
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  value={axisSize}
+                  onChange={(e) => setAxisSize(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Lighting */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Lighting
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 block mb-1">
+                  Ambient: {ambientIntensity.toFixed(1)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={ambientIntensity}
+                  onChange={(e) => setAmbientIntensity(Number(e.target.value))}
+                  className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-600"
+                />
+              </div>
+              <div>
+                <label className="text-gray-700 dark:text-gray-300 block mb-1">
+                  Directional: {directionalIntensity.toFixed(1)}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={directionalIntensity}
+                  onChange={(e) =>
+                    setDirectionalIntensity(Number(e.target.value))
+                  }
+                  className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-600"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Background Color */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+            <div className="font-bold text-gray-900 dark:text-gray-100 mb-2 text-sm">
+              Background
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="color"
+                value={backgroundColor}
+                onChange={(e) => setBackgroundColor(e.target.value)}
+                className="w-12 h-8 rounded cursor-pointer border border-gray-300 dark:border-gray-600"
+              />
+              <button
+                onClick={() => setBackgroundColor("#f0f0f0")}
+                className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded text-xs font-medium transition"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          {/* Camera Info */}
+          <div className="pt-3 border-t border-gray-300 dark:border-gray-600 text-xs text-gray-500 dark:text-gray-400">
+            <div className="font-semibold mb-1 text-gray-700 dark:text-gray-300">
+              Camera Info
+            </div>
+            <div>Zoom: {zoomRef.current.toFixed(1)}x</div>
+            <div>
+              Rotation: {((rotationRef.current.y * 180) / Math.PI).toFixed(0)}°
+            </div>
+            <div>
+              Pan: ({panRef.current.x.toFixed(1)}, {panRef.current.y.toFixed(1)}
+              )
+            </div>
+          </div>
+
+          {/* Animation Status */}
+          {isAnimating && (
+            <div className="pt-3 border-t border-gray-300 dark:border-gray-600">
+              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                <div className="w-2 h-2 bg-orange-600 rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium">Animation Active</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Model info */}
+      {/* Model Info Badge */}
       {uploadedModel && (
-        <div className="absolute top-4 right-4 bg-teal-600 text-white rounded-lg p-3 shadow-lg text-xs">
+        <div className="absolute top-4 right-4 bg-teal-600 text-white rounded-lg p-3 shadow-lg text-xs max-w-[200px]">
           <div className="font-semibold mb-1">Custom Model</div>
-          <div>{uploadedModel.name}</div>
+          <div className="truncate">{uploadedModel.name}</div>
+          <div className="text-teal-100 mt-1">
+            {uploadedModel.type.toUpperCase()}
+          </div>
         </div>
       )}
     </div>

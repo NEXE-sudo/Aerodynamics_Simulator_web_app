@@ -1,4 +1,5 @@
 import { Point } from "../../types";
+import { CFDFlowSolver } from "../physics/cfd-simple";
 
 export class FlowField {
   static generateStreamlines(
@@ -7,40 +8,47 @@ export class FlowField {
     angleOfAttack: number,
     numLines = 15
   ): Point[][] {
-    const streamlines: Point[][] = [];
-    const alpha = (angleOfAttack * Math.PI) / 180;
+    // Use the new CFD solver
+    const flowField = CFDFlowSolver.calculateVelocityField(
+      geometry,
+      velocity,
+      angleOfAttack,
+      40 // grid resolution
+    );
 
-    for (let i = 0; i < numLines; i++) {
-      const startY = -0.5 + (i / (numLines - 1)) * 1;
-      const line: Point[] = [];
+    const streamlinesData = CFDFlowSolver.generateStreamlines(
+      flowField,
+      velocity,
+      angleOfAttack,
+      geometry,
+      numLines
+    );
 
-      let x = -0.5;
-      let y = startY;
+    // Return just the points for now (compatibility)
+    return streamlinesData.map((sl) => sl.points);
+  }
 
-      for (let step = 0; step < 150; step++) {
-        line.push({ x, y });
+  static generateStreamlinesWithData(
+    geometry: Point[],
+    velocity: number,
+    angleOfAttack: number,
+    numLines = 15
+  ): { points: Point[]; speeds: number[]; pressures: number[] }[] {
+    // New method that returns full data
+    const flowField = CFDFlowSolver.calculateVelocityField(
+      geometry,
+      velocity,
+      angleOfAttack,
+      40
+    );
 
-        const dx = 0.01;
-        const distToAirfoil = Math.min(
-          ...geometry.map((p) =>
-            Math.sqrt((p.x - x) * (p.x - x) + (p.y - y) * (p.y - y))
-          )
-        );
-
-        if (distToAirfoil < 0.05) break;
-
-        const deflection = Math.exp(-distToAirfoil * 5) * Math.sin(alpha) * 0.1;
-
-        x += dx;
-        y += deflection;
-
-        if (x > 1.5 || Math.abs(y) > 0.8) break;
-      }
-
-      if (line.length > 10) streamlines.push(line);
-    }
-
-    return streamlines;
+    return CFDFlowSolver.generateStreamlines(
+      flowField,
+      velocity,
+      angleOfAttack,
+      geometry,
+      numLines
+    );
   }
 
   static calculatePressureField(

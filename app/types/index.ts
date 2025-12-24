@@ -51,3 +51,11 @@ export interface UploadedModel {
 }
 
 export type ModelSource = "generated" | "uploaded";
+
+export type ProjectionFace =
+  | "xy-top"
+  | "xy-bottom"
+  | "xz-front"
+  | "xz-back"
+  | "yz-left"
+  | "yz-right";
