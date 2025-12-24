@@ -69,13 +69,13 @@ export default function ResultsPanel({
   const getConfidenceColor = (confidence: string) => {
     switch (confidence) {
       case "high":
-        return "text-green-600 bg-green-50 border-green-300";
+        return "text-green-600 dark:text-green-300 bg-green-50 dark:bg-green-950/30 border-green-300 dark:border-green-700";
       case "medium":
-        return "text-yellow-600 bg-yellow-50 border-yellow-300";
+        return "text-yellow-600 dark:text-yellow-300 bg-yellow-50 dark:bg-yellow-950/30 border-yellow-300 dark:border-yellow-700";
       case "low":
-        return "text-red-600 bg-red-50 border-red-300";
+        return "text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700";
       default:
-        return "text-gray-600 bg-gray-50 border-gray-300";
+        return "text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700";
     }
   };
 

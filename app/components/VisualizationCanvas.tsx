@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Point, UploadedModel } from "../types";
 import { ParticleSystem, Particle } from "../lib/visualization/particles";
+import { useTheme } from "../providers/ThemeProvider";
 
 type ProjectionFace =
   | "xy-top"
@@ -39,6 +40,7 @@ export default function VisualizationCanvas({
   projectionPlane = "xy",
   onProjectionChange,
 }: VisualizationCanvasProps) {
+  const { isDark } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const timeRef = useRef(0);
@@ -198,10 +200,15 @@ export default function VisualizationCanvas({
 
     // Draw function
     const draw = () => {
-      // Clear canvas with gradient background
+      // Clear canvas with theme-aware gradient background
       const gradient = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-      gradient.addColorStop(0, "#f3f4f6");
-      gradient.addColorStop(1, "#e5e7eb");
+      if (isDark) {
+        gradient.addColorStop(0, "#1f2937");
+        gradient.addColorStop(1, "#111827");
+      } else {
+        gradient.addColorStop(0, "#f3f4f6");
+        gradient.addColorStop(1, "#e5e7eb");
+      }
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
@@ -319,6 +326,7 @@ export default function VisualizationCanvas({
     angleOfAttack,
     velocity,
     particleSystem,
+    isDark,
   ]);
 
   const drawAirfoil = (
@@ -552,7 +560,7 @@ export default function VisualizationCanvas({
     width: number,
     height: number
   ) => {
-    ctx.strokeStyle = "#9ca3af";
+    ctx.strokeStyle = isDark ? "#4b5563" : "#9ca3af";
     ctx.lineWidth = 1;
     ctx.setLineDash([5, 5]);
 
@@ -570,8 +578,8 @@ export default function VisualizationCanvas({
 
     ctx.setLineDash([]);
 
-    // Labels
-    ctx.fillStyle = "#6b7280";
+    // Labels - theme aware
+    ctx.fillStyle = isDark ? "#9ca3af" : "#6b7280";
     ctx.font = "12px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("Chord", padding + width / 2, padding + height + 20);

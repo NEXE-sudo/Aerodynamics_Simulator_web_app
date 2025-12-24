@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { Point, UploadedModel } from "../types";
+import { useTheme } from "../providers/ThemeProvider";
 
 //@ts-ignore - CapsuleGeometry not available in r128
 
@@ -21,6 +22,7 @@ export default function ThreeJSViewer({
   isAnimating,
   uploadedModel,
 }: ThreeJSViewerProps) {
+  const { isDark } = useTheme();
   const mountRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -70,7 +72,7 @@ export default function ThreeJSViewer({
     if (!mountRef.current) return;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(darkBackground ? 0x1a1a1a : 0xf9fafb);
+    scene.background = new THREE.Color(isDark ? 0x1f2937 : 0xf9fafb);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(
@@ -192,14 +194,14 @@ export default function ThreeJSViewer({
     }
   }, [showWireframe]);
 
-  // Update background color
+  // Update background color based on theme
   useEffect(() => {
     if (sceneRef.current) {
       sceneRef.current.background = new THREE.Color(
-        darkBackground ? 0x1a1a1a : 0xf9fafb
+        isDark ? 0x1f2937 : 0xf9fafb
       );
     }
-  }, [darkBackground]);
+  }, [isDark]);
 
   // Toggle lighting
   useEffect(() => {

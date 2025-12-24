@@ -91,8 +91,8 @@ export default function ExplanationPanel({
           </p>
         </div>
 
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-900 mb-1">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
             Drag Behavior
           </h4>
           <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -100,8 +100,8 @@ export default function ExplanationPanel({
           </p>
         </div>
 
-        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-          <h4 className="text-sm font-semibold text-purple-900 mb-1">
+        <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
+          <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-300 mb-1">
             Overall Efficiency
           </h4>
           <p className="text-sm text-gray-700 dark:text-gray-300">
@@ -114,15 +114,15 @@ export default function ExplanationPanel({
           <div
             className={`rounded-lg p-3 border ${
               stallWarning.severity === "high"
-                ? "bg-red-50 border-red-300"
-                : "bg-amber-50 border-amber-300"
+                ? "bg-red-50 dark:bg-red-950/30 border-red-300 dark:border-red-700"
+                : "bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700"
             }`}
           >
             <p
               className={`text-sm font-medium ${
                 stallWarning.severity === "high"
-                  ? "text-red-800"
-                  : "text-amber-800"
+                  ? "text-red-800 dark:text-red-300"
+                  : "text-amber-800 dark:text-amber-300"
               }`}
             >
               {stallWarning.message}
@@ -131,11 +131,11 @@ export default function ExplanationPanel({
         )}
 
         {/* Key Concepts */}
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+        <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
             Key Concepts
           </h4>
-          <ul className="space-y-1 text-xs text-gray-600">
+          <ul className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
             <li className="flex items-start gap-2">
               <span className="text-teal-600 font-bold">•</span>
               <span>
@@ -166,8 +166,8 @@ export default function ExplanationPanel({
         </div>
 
         {/* Interactive Tips */}
-        <div className="mt-3 p-2 bg-teal-50 rounded border border-teal-200">
-          <p className="text-xs text-teal-900">
+        <div className="mt-3 p-2 bg-teal-50 dark:bg-teal-950/30 rounded border border-teal-200 dark:border-teal-700">
+          <p className="text-xs text-teal-900 dark:text-teal-300">
             <strong>💡 Try this:</strong> Gradually increase the angle of attack
             and watch how lift increases—until stall! Notice how drag also
             rises. Find the sweet spot where L/D ratio is highest.
