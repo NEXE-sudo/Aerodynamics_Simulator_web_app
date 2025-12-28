@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { simulateLegacy } from "../lib/physics/engine";
 import { GeometryGenerator } from "../lib/visualization/geometry";
-import { ParticleSystem } from "../lib/visualization/particles";
-import { FlowField } from "../lib/visualization/flow-field";
 import ThreeJSViewer from "../components/ThreeJSViewer";
 import { Mode, GeometryType, SimulationResults, Point } from "../types";
 import { UploadedModel } from "../types";
@@ -35,18 +33,11 @@ export default function AeroPlatform() {
     useState<SimulationResults | null>(null);
   const [previousAngle, setPreviousAngle] = useState<number | null>(null);
   const [previousVelocity, setPreviousVelocity] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
-  const [view2DProjection, setView2DProjection] = useState<"xy" | "xz" | "yz">(
-    "xy"
-  );
 
   const [uploadedModel, setUploadedModel] = useState<UploadedModel | null>(
     null
   );
   const [isAnimating, setIsAnimating] = useState(true);
-  const [streamlines, setStreamlines] = useState<Point[][]>([]);
-  const [pressureField, setPressureField] = useState<number[]>([]);
-  const [showStreamlines, setShowStreamlines] = useState(true);
 
   const [savedResults, setSavedResults] = useState<SimulationResults | null>(
     null
@@ -54,9 +45,14 @@ export default function AeroPlatform() {
   const [results, setResults] = useState<SimulationResults | null>(null);
   const [geometry, setGeometry] = useState<Point[]>([]);
 
-  const particleSystemRef = useRef<ParticleSystem | null>(null);
-
-  // Removed the 'cameraRef' useEffect block here - it caused the crash!
+  const handleModelClear = () => {
+    setUploadedModel(null);
+    const geom = GeometryGenerator.generateAirfoil(geometryType, {
+      thickness,
+      camber,
+    });
+    setGeometry(geom);
+  };
 
   const runSimulation = () => {
     const params = {
@@ -84,24 +80,6 @@ export default function AeroPlatform() {
       camber,
     });
     setGeometry(geom);
-
-    const streamlinesData = FlowField.generateStreamlines(
-      geom,
-      velocity,
-      angleOfAttack
-    );
-    setStreamlines(streamlinesData);
-
-    const pressureData = FlowField.calculatePressureField(
-      geom,
-      velocity,
-      density
-    );
-    setPressureField(pressureData);
-
-    if (!particleSystemRef.current && geom.length > 0) {
-      particleSystemRef.current = new ParticleSystem(geom, 250);
-    }
   };
 
   useEffect(() => {
@@ -118,17 +96,27 @@ export default function AeroPlatform() {
   ]);
 
   const exportReport = () => {
-    // ... (Keep existing export logic)
+    console.log("Export functionality to be implemented");
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      <div className="max-w-[1600px] mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <ThemeToggle />
-        <Header />
-        <ModeSelector mode={mode} onModeChange={setMode} />
 
-        <div className="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6">
+        {/* Header Section */}
+        <div className="mb-6 text-center">
+          <Header />
+        </div>
+
+        {/* Mode Selector */}
+        <div className="mb-6">
+          <ModeSelector mode={mode} onModeChange={setMode} />
+        </div>
+
+        {/* NEW LAYOUT: Three columns for better visibility */}
+        <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr_380px] gap-4">
+          {/* LEFT COLUMN - Controls */}
           <aside className="space-y-4">
             <ControlPanel
               mode={mode}
@@ -140,7 +128,6 @@ export default function AeroPlatform() {
               density={density}
               length={length}
               area={area}
-              showStreamlines={showStreamlines}
               isAnimating={isAnimating}
               onGeometryTypeChange={setGeometryType}
               onThicknessChange={setThickness}
@@ -150,13 +137,29 @@ export default function AeroPlatform() {
               onDensityChange={setDensity}
               onLengthChange={setLength}
               onAreaChange={setArea}
-              onShowStreamlinesChange={setShowStreamlines}
               onAnimatingChange={setIsAnimating}
             />
+
             <ModelUploader
               onModelUpload={setUploadedModel}
               currentModel={uploadedModel}
+              onClear={handleModelClear}
             />
+          </aside>
+
+          {/* CENTER - 3D Viewer */}
+          <main className="flex flex-col gap-4">
+            <div className="w-full h-[600px] bg-slate-950 rounded-2xl shadow-2xl overflow-hidden border-2 border-slate-800">
+              <ThreeJSViewer
+                geometry={geometry}
+                uploadedModel={uploadedModel}
+                velocity={velocity}
+                angleOfAttack={angleOfAttack}
+                isAnimating={isAnimating}
+              />
+            </div>
+
+            {/* Learning Feedback Below Viewer */}
             {mode === "learning" && results && (
               <LiveFeedbackPanel
                 results={results}
@@ -168,28 +171,18 @@ export default function AeroPlatform() {
                 previousVelocity={previousVelocity}
               />
             )}
-          </aside>
+          </main>
 
-          <main className="space-y-6">
-            {/* The container for the new professional 3D scene */}
-            <div className="bg-slate-950 rounded-xl shadow-2xl overflow-hidden border-2 border-slate-800 h-[650px] relative">
-              <ThreeJSViewer
-                geometry={geometry}
-                uploadedModel={uploadedModel}
-                velocity={velocity}
-                angleOfAttack={angleOfAttack}
-                isAnimating={isAnimating}
-              />
-            </div>
-
-            {/* Simulation Results remain below the viewer */}
+          {/* RIGHT COLUMN - Results (Always Visible!) */}
+          <aside className="space-y-4">
             {results && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <>
                 <ResultsPanel
                   results={results}
                   mode={mode}
                   onExport={exportReport}
                 />
+
                 {mode === "comparison" && (
                   <ComparisonPanel
                     currentResults={results}
@@ -197,12 +190,22 @@ export default function AeroPlatform() {
                     onSaveCurrent={() => setSavedResults(results)}
                   />
                 )}
-              </div>
+              </>
             )}
-          </main>
+          </aside>
         </div>
-        <footer className="mt-10 text-center border-t-2 border-gray-200 dark:border-gray-700 pt-6">
-          {/* ... footer content ... */}
+
+        {/* Footer */}
+        <footer className="mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-800">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <strong>Educational Aerodynamics Platform</strong> • Free Web
+              Version
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-500">
+              Simplified models for learning • Not for professional use
+            </p>
+          </div>
         </footer>
       </div>
     </div>

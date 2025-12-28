@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, X, FileIcon } from "lucide-react";
+import { Upload, X, FileIcon, AlertCircle } from "lucide-react";
 import { UploadedModel } from "../types";
 
 interface ModelUploaderProps {
   onModelUpload: (model: UploadedModel | null) => void;
   currentModel: UploadedModel | null;
+  onClear?: () => void;
 }
 
 export default function ModelUploader({
   onModelUpload,
   currentModel,
+  onClear,
 }: ModelUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,7 +68,7 @@ export default function ModelUploader({
       file,
       url,
       name: file.name,
-      type: fileExtension,
+      type: fileExtension as ".glb" | ".gltf" | ".obj" | ".stl",
     });
   };
 
@@ -78,6 +80,9 @@ export default function ModelUploader({
     if (inputRef.current) {
       inputRef.current.value = "";
     }
+    if (onClear) {
+      onClear();
+    }
   };
 
   const handleButtonClick = () => {
@@ -85,18 +90,18 @@ export default function ModelUploader({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-        <Upload size={20} className="text-teal-600" />
-        Upload 3D Model
+    <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+      <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+        <Upload size={18} className="text-purple-600 dark:text-purple-400" />
+        3D Model Upload
       </h3>
 
       {!currentModel ? (
         <div
-          className={`border-2 border-dashed rounded-lg p-6 text-center transition ${
+          className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
             dragActive
-              ? "border-teal-500 bg-teal-50 dark:bg-teal-950"
-              : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800"
+              ? "border-purple-500 bg-purple-50 dark:bg-purple-950/30 scale-105"
+              : "border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:border-purple-400"
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -114,58 +119,74 @@ export default function ModelUploader({
           <Upload
             size={48}
             className={`mx-auto mb-4 ${
-              dragActive ? "text-teal-500" : "text-gray-400"
+              dragActive ? "text-purple-500" : "text-gray-400"
             }`}
           />
 
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-            Drag and drop your 3D model here, or
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">
+            Drag and drop your 3D model here
           </p>
 
           <button
             onClick={handleButtonClick}
-            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded transition text-sm font-medium"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2.5 rounded-lg transition-all text-sm font-semibold shadow-md hover:shadow-lg active:scale-95"
           >
             Browse Files
           </button>
 
-          <p className="text-xs text-gray-500 mt-3">
-            Supported formats: .glb, .gltf, .obj, .stl
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-4">
+            Supported: .glb, .gltf, .obj, .stl
           </p>
         </div>
       ) : (
-        <div className="bg-teal-50 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-700 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FileIcon size={24} className="text-teal-600" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {currentModel.name}
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {currentModel.type.toUpperCase()} file
-                </p>
+        <div>
+          <div className="bg-purple-50 dark:bg-purple-950/30 border-2 border-purple-300 dark:border-purple-700 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <FileIcon
+                  size={28}
+                  className="text-purple-600 dark:text-purple-400"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {currentModel.name}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    {currentModel.type.toUpperCase()} file
+                  </p>
+                </div>
               </div>
+              <button
+                onClick={handleRemove}
+                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition p-2 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
+                title="Remove model"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <button
-              onClick={handleRemove}
-              className="text-red-600 hover:text-red-700 transition"
-              title="Remove model"
-            >
-              <X size={20} />
-            </button>
           </div>
+
+          <button
+            onClick={handleRemove}
+            className="w-full mt-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg transition text-sm font-medium"
+          >
+            Back to Generated Airfoil
+          </button>
         </div>
       )}
 
-      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-700 rounded text-xs text-gray-700 dark:text-gray-300">
-        <p className="font-semibold text-blue-900 dark:text-blue-300 mb-1">
-          Note:
-        </p>
-        <p>
-          Uploaded models will replace the generated airfoil geometry in the 3D
-          view. Aerodynamic calculations will still use the generated geometry.
-        </p>
+      <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 rounded-lg">
+        <div className="flex items-start gap-2">
+          <AlertCircle
+            size={16}
+            className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"
+          />
+          <p className="text-xs text-amber-900 dark:text-amber-300 leading-relaxed">
+            <strong>Note:</strong> Uploaded models replace the airfoil shape
+            visually. Physics calculations still use the generated airfoil
+            geometry.
+          </p>
+        </div>
       </div>
     </div>
   );
