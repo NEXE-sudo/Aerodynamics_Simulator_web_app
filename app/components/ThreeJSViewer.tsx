@@ -44,92 +44,90 @@ function AirfoilExtrusion({ points, key }: { points: Point[]; key: string }) {
   );
 }
 
-// DYNAMIC animated flow particles
-function AnimatedFlowParticles({
-  velocity,
-  angle,
-  active,
-  geometry,
-}: {
-  velocity: number;
-  angle: number;
-  active: boolean;
-  geometry: Point[];
-}) {
-  const particlesRef = useRef<THREE.Points>(null);
-  const numParticles = 300;
+// Helper to map a value to a SolidWorks-style Rainbow (Blue-Cyan-Green-Yellow-Red)
+const getFlowColor = (normalizedValue: number) => {
+  const color = new THREE.Color();
+  // 0.0 (Slow/High Pressure) = Blue
+  // 1.0 (Fast/Low Pressure) = Red
+  color.setHSL(0.7 * (1 - normalizedValue), 1, 0.5);
+  return color;
+};
 
-  const { positions, velocities, colors } = useMemo(() => {
-    const positions = new Float32Array(numParticles * 3);
-    const velocities = new Float32Array(numParticles * 3);
-    const colors = new Float32Array(numParticles * 3);
+function AnimatedFlowParticles({ velocity, angle, geometry, active }: any) {
+  const particlesRef = useRef<THREE.Points>(null);
+  const numParticles = 800; // Increased density for "SolidWorks" look
+
+  const { positions, colors, data } = useMemo(() => {
+    const pos = new Float32Array(numParticles * 3);
+    const cols = new Float32Array(numParticles * 3);
+    const particleData = []; // Store individual offsets
 
     for (let i = 0; i < numParticles; i++) {
       const i3 = i * 3;
+      pos[i3] = Math.random() * 10 - 5;
+      pos[i3 + 1] = Math.random() * 4 - 2;
+      pos[i3 + 2] = Math.random() * 2 - 1;
 
-      // Start particles upstream
-      positions[i3] = -5 + Math.random() * 2; // x: -5 to -3
-      positions[i3 + 1] = (Math.random() - 0.5) * 4; // y: -2 to 2
-      positions[i3 + 2] = (Math.random() - 0.5) * 2; // z: -1 to 1
-
-      // Initial velocity (will be updated in animation)
-      velocities[i3] = 1;
-      velocities[i3 + 1] = 0;
-      velocities[i3 + 2] = 0;
-
-      // Cyan-blue color gradient
-      const hue = 0.5 + Math.random() * 0.1; // 180-216 degrees
-      colors[i3] = 0.2 + Math.random() * 0.3; // R
-      colors[i3 + 1] = 0.6 + Math.random() * 0.3; // G
-      colors[i3 + 2] = 0.9 + Math.random() * 0.1; // B
+      particleData.push({
+        speedOffset: Math.random() * 0.5 + 0.8,
+        yOffset: pos[i3 + 1],
+      });
     }
-
-    return { positions, velocities, colors };
+    return { positions: pos, colors: cols, data: particleData };
   }, []);
 
   useFrame((state, delta) => {
     if (!particlesRef.current || !active) return;
-
-    const posArray = particlesRef.current.geometry.attributes.position
-      .array as Float32Array;
+    const posAttr = particlesRef.current.geometry.attributes.position;
+    const colAttr = particlesRef.current.geometry.attributes.color;
     const angleRad = (angle * Math.PI) / 180;
-    const speedFactor = velocity / 20;
 
     for (let i = 0; i < numParticles; i++) {
       const i3 = i * 3;
+      let x = posAttr.array[i3];
+      let y = posAttr.array[i3 + 1];
 
-      let x = posArray[i3];
-      let y = posArray[i3 + 1];
-      const z = posArray[i3 + 2];
+      // --- PHYSICS LOGIC ---
+      // 1. Airfoil Influence (Bernoulli effect)
+      const distToLeadingEdge = Math.sqrt(
+        Math.pow(x + 0.5, 2) + Math.pow(y, 2)
+      );
+      let localVelocityFactor = 1.0;
 
-      // Check if near airfoil (simple approximation)
-      const distToCenter = Math.sqrt(x * x + y * y);
-      let flowDeflection = 0;
-
-      // Airfoil influence zone
-      if (distToCenter < 2 && x > -0.5 && x < 1) {
-        // Flow speeds up over top, slows below
-        flowDeflection = y > 0 ? -0.1 : 0.05;
-
-        // Angle of attack effect
-        flowDeflection += angleRad * 0.3;
+      if (distToLeadingEdge < 2) {
+        // Particles over the top (y > 0) accelerate
+        // Particles below (y < 0) decelerate slightly
+        const acceleration = y > 0 ? 0.4 : -0.2;
+        localVelocityFactor += acceleration * Math.exp(-distToLeadingEdge);
       }
 
-      // Update position with flow physics
-      x += speedFactor * delta * 2 * Math.cos(angleRad);
-      y += speedFactor * delta * 2 * Math.sin(angleRad) + flowDeflection;
+      // 2. Update Position
+      x += velocity * delta * 0.5 * localVelocityFactor;
 
-      // Wrap around when particles leave screen
-      if (x > 6 || y > 3 || y < -3) {
-        x = -5 + Math.random() * 2;
-        y = (Math.random() - 0.5) * 4;
+      // Simple lift-based deflection
+      if (x > -0.5 && x < 2) {
+        y += Math.sin(angleRad) * delta * 2;
       }
 
-      posArray[i3] = x;
-      posArray[i3 + 1] = y;
+      // 3. Reset loop
+      if (x > 5) {
+        x = -5;
+        y = data[i].yOffset;
+      }
+
+      // 4. Color Mapping (SolidWorks Style)
+      // Map localVelocityFactor to a color (1.4 = Red, 0.8 = Blue)
+      const normVel = (localVelocityFactor - 0.8) / 0.7;
+      const c = getFlowColor(THREE.MathUtils.clamp(normVel, 0, 1));
+
+      posAttr.array[i3] = x;
+      posAttr.array[i3 + 1] = y;
+      colAttr.array[i3] = c.r;
+      colAttr.array[i3 + 1] = c.g;
+      colAttr.array[i3 + 2] = c.b;
     }
-
-    particlesRef.current.geometry.attributes.position.needsUpdate = true;
+    posAttr.needsUpdate = true;
+    colAttr.needsUpdate = true;
   });
 
   return (
@@ -148,13 +146,7 @@ function AnimatedFlowParticles({
           itemSize={3}
         />
       </bufferGeometry>
-      <pointsMaterial
-        size={0.05}
-        vertexColors
-        transparent
-        opacity={0.8}
-        sizeAttenuation
-      />
+      <pointsMaterial size={0.06} vertexColors transparent opacity={0.6} />
     </points>
   );
 }
