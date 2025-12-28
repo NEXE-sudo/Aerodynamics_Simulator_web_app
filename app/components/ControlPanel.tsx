@@ -1,5 +1,6 @@
 import { Mode, GeometryType } from "../types";
 import { Settings, Info } from "lucide-react";
+import SliderInput from "./ui/SliderInput"; // Ensure you created this file
 
 interface ControlPanelProps {
   mode: Mode;
@@ -13,7 +14,7 @@ interface ControlPanelProps {
   area: number;
   showStreamlines: boolean;
   isAnimating: boolean;
-
+  // Handlers
   onGeometryTypeChange: (type: GeometryType) => void;
   onThicknessChange: (v: number) => void;
   onCamberChange: (v: number) => void;
@@ -26,11 +27,7 @@ interface ControlPanelProps {
   onAnimatingChange: (v: boolean) => void;
 }
 
-/* =====================================================
-   CONTROL CONFIG (MODE-DEPENDENT)
-===================================================== */
-
-const controls = {
+const controlsConfig = {
   learning: {
     angle: { min: -10, max: 15, step: 1 },
     velocity: { min: 10, max: 40, step: 1 },
@@ -54,33 +51,9 @@ const controls = {
   },
 };
 
-export default function ControlPanel({
-  mode,
-  geometryType,
-  thickness,
-  camber,
-  velocity,
-  angleOfAttack,
-  density,
-  length,
-  area,
-  showStreamlines,
-  isAnimating,
-  onGeometryTypeChange,
-  onThicknessChange,
-  onCamberChange,
-  onVelocityChange,
-  onAngleChange,
-  onDensityChange,
-  onLengthChange,
-  onAreaChange,
-  onShowStreamlinesChange,
-  onAnimatingChange,
-}: ControlPanelProps) {
-  const config = controls[mode];
-  const disabled = config.disabled;
-
-  const isDisabled = (key: string) => disabled.includes(key);
+export default function ControlPanel(props: ControlPanelProps) {
+  const config = controlsConfig[props.mode];
+  const isDisabled = (key: string) => config.disabled.includes(key);
 
   return (
     <div className="w-full h-fit p-5 space-y-6 text-sm bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-xl shadow-xl">
@@ -90,9 +63,11 @@ export default function ControlPanel({
           Geometry Type
         </label>
         <select
-          value={geometryType}
-          onChange={(e) => onGeometryTypeChange(e.target.value as GeometryType)}
-          className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
+          value={props.geometryType}
+          onChange={(e) =>
+            props.onGeometryTypeChange(e.target.value as GeometryType)
+          }
+          className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all font-medium text-gray-900 dark:text-gray-100"
         >
           <option value="symmetric">Symmetric Airfoil</option>
           <option value="cambered">Cambered Airfoil</option>
@@ -100,117 +75,59 @@ export default function ControlPanel({
         </select>
       </div>
 
-      {/* Header */}
       <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 font-semibold">
         <Settings size={16} />
         Simulation Controls
       </div>
 
-      {/* Angle of Attack */}
-      <div>
-        <label className="font-medium text-gray-900 dark:text-gray-100">
-          Angle of Attack (°): {angleOfAttack.toFixed(1)}
-        </label>
-        <input
-          type="range"
-          min={config.angle.min}
-          max={config.angle.max}
-          step={config.angle.step}
-          value={angleOfAttack}
-          onChange={(e) => onAngleChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
-        />
-      </div>
+      <SliderInput
+        label="Angle of Attack"
+        value={props.angleOfAttack}
+        min={config.angle.min}
+        max={config.angle.max}
+        step={config.angle.step}
+        unit="°"
+        onChange={props.onAngleChange}
+      />
 
-      {/* Velocity */}
-      <div>
-        <label className="font-medium text-gray-900 dark:text-gray-100">
-          Velocity (m/s): {velocity.toFixed(1)}
-        </label>
-        <input
-          type="range"
-          min={config.velocity.min}
-          max={config.velocity.max}
-          step={config.velocity.step}
-          value={velocity}
-          onChange={(e) => onVelocityChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
-        />
-      </div>
+      <SliderInput
+        label="Velocity"
+        value={props.velocity}
+        min={config.velocity.min}
+        max={config.velocity.max}
+        step={config.velocity.step}
+        unit="m/s"
+        onChange={props.onVelocityChange}
+      />
 
-      {/* Thickness */}
-      <div>
-        <label className="font-medium text-gray-900 dark:text-gray-100">
-          Thickness: {thickness.toFixed(3)}
-        </label>
-        <input
-          type="range"
-          min={config.thickness.min}
-          max={config.thickness.max}
-          step={config.thickness.step}
-          value={thickness}
-          onChange={(e) => onThicknessChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
-        />
-      </div>
+      <SliderInput
+        label="Thickness"
+        value={props.thickness}
+        min={config.thickness.min}
+        max={config.thickness.max}
+        step={config.thickness.step}
+        onChange={props.onThicknessChange}
+      />
 
-      {/* Camber */}
-      <div>
-        <label className="font-medium text-gray-900 dark:text-gray-100">
-          Camber: {camber.toFixed(3)}
-        </label>
-        <input
-          type="range"
-          min={config.camber.min}
-          max={config.camber.max}
-          step={config.camber.step}
-          value={camber}
-          onChange={(e) => onCamberChange(parseFloat(e.target.value))}
-          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg cursor-pointer accent-teal-500 hover:accent-teal-600 transition"
-        />
-      </div>
+      <SliderInput
+        label="Camber"
+        value={props.camber}
+        min={config.camber.min}
+        max={config.camber.max}
+        step={config.camber.step}
+        onChange={props.onCamberChange}
+      />
 
-      {/* Density */}
       {!isDisabled("density") && (
         <div>
           <label className="font-medium text-gray-900 dark:text-gray-100">
-            Air Density (kg/m³): {density.toFixed(2)}
+            Air Density: {props.density.toFixed(2)} kg/m³
           </label>
           <input
             type="number"
-            value={density}
-            onChange={(e) => onDensityChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
-          />
-        </div>
-      )}
-
-      {/* Length */}
-      {!isDisabled("length") && (
-        <div>
-          <label className="font-medium text-gray-900 dark:text-gray-100">
-            Reference Length (m): {length.toFixed(2)}
-          </label>
-          <input
-            type="number"
-            value={length}
-            onChange={(e) => onLengthChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
-          />
-        </div>
-      )}
-
-      {/* Area */}
-      {!isDisabled("area") && (
-        <div>
-          <label className="font-medium text-gray-900 dark:text-gray-100">
-            Reference Area (m²): {area.toFixed(2)}
-          </label>
-          <input
-            type="number"
-            value={area}
-            onChange={(e) => onAreaChange(parseFloat(e.target.value))}
-            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-all duration-200 font-medium text-gray-900 dark:text-gray-100"
+            value={props.density}
+            onChange={(e) => props.onDensityChange(parseFloat(e.target.value))}
+            className="w-full rounded-lg px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
           />
         </div>
       )}
@@ -218,21 +135,20 @@ export default function ControlPanel({
       {/* Toggles */}
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
         <button
-          onClick={() => onShowStreamlinesChange(!showStreamlines)}
-          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 font-medium"
+          onClick={() => props.onShowStreamlinesChange(!props.showStreamlines)}
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 font-medium"
         >
-          {showStreamlines ? "Hide Flow Lines" : "Show Flow Lines"}
+          {props.showStreamlines ? "Hide Flow Lines" : "Show Flow Lines"}
         </button>
 
         <button
-          onClick={() => onAnimatingChange(!isAnimating)}
-          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 font-medium"
+          onClick={() => props.onAnimatingChange(!props.isAnimating)}
+          className="w-full rounded px-3 py-2 bg-gray-100 dark:bg-gray-700 font-medium"
         >
-          {isAnimating ? "Pause Animation" : "Play Animation"}
+          {props.isAnimating ? "Pause Animation" : "Play Animation"}
         </button>
       </div>
 
-      {/* Info */}
       <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400 pt-4">
         <Info size={14} />
         Values are approximate and depend on the selected simulation mode.

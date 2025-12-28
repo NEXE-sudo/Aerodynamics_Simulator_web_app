@@ -11,6 +11,8 @@
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide": "^0.562.0",
@@ -19,7 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^2.2.1",
-    "three": "^0.128.0",
+    "three": "^0.182.0",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
@@ -29,7 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@types/three": "^0.128.0",
+    "@types/three": "^0.182.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
     "tailwindcss": "^4",

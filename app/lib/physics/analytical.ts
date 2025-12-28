@@ -67,6 +67,13 @@ export class AnalyticalPhysics {
   }
 
   /**
+   * Calculate lift coefficient using thin airfoil theory
+   * @param geometry - Airfoil geometry parameters
+   * @param Re - Reynolds number
+   * @returns Lift coefficient (dimensionless)
+   */
+
+  /**
    * Thin airfoil theory - Lift coefficient
    * Valid for: small angles, attached flow, thin airfoils
    *

@@ -117,14 +117,14 @@ export default function ResultsPanel({
         )}`}
       >
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <AlertCircle size={18} />
-            <span className="font-bold text-sm">
-              Confidence: {results.confidence.toUpperCase()}
+          <div className="flex items-center gap-1">
+            <Info size={14} className="text-gray-400" />
+            <span className="font-bold">
+              {results.flowState?.regime.confidence.toUpperCase() ?? "UNKNOWN"}
             </span>
           </div>
           <div className="text-xs font-mono">
-            Re = {results.reynolds.toExponential(2)}
+            Re = {results.flowState?.reynolds.toExponential(2) ?? "0.00e+0"}
           </div>
         </div>
         <div className="text-xs mt-2 font-medium opacity-90">
@@ -233,6 +233,71 @@ export default function ResultsPanel({
               shows efficiency—higher is better!
             </p>
           </div>
+        </div>
+      )}
+      {/* Physics Explanation - Learning Mode */}
+      {mode === "learning" && results.explanation && (
+        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-2 border-blue-300 dark:border-blue-700 rounded-lg">
+          <div className="text-sm font-bold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
+            <Info size={16} />
+            What's Happening Physically
+          </div>
+          <div className="space-y-2 text-xs text-blue-900 dark:text-blue-200">
+            <div>
+              <span className="font-semibold">Flow Regime:</span>{" "}
+              {results.explanation.regime}
+            </div>
+            <div>
+              <span className="font-semibold">Lift:</span>{" "}
+              {results.explanation.liftMechanism}
+            </div>
+            <div>
+              <span className="font-semibold">Drag:</span>{" "}
+              {results.explanation.dragSources}
+            </div>
+            <div className="pt-2 mt-2 border-t border-blue-300 dark:border-blue-600 font-semibold">
+              💡 {results.explanation.keyInsight}
+            </div>
+            {results.explanation.suggestion && (
+              <div className="pt-2 text-indigo-700 dark:text-indigo-300 font-medium">
+                → {results.explanation.suggestion}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Warnings - All Modes */}
+      {results.warnings && results.warnings.length > 0 && (
+        <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/30 border-2 border-amber-400 dark:border-amber-600 rounded-lg">
+          <div className="text-sm font-bold text-amber-900 dark:text-amber-300 mb-2 flex items-center gap-2">
+            <AlertCircle size={16} />
+            Active Warnings
+          </div>
+          <ul className="space-y-1 text-xs text-amber-900 dark:text-amber-200">
+            {results.warnings.map((warning, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <span className="text-amber-600 font-bold">•</span>
+                <span>{warning}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Assumptions - Design Mode */}
+      {mode === "design" && results.assumptions && (
+        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg">
+          <details className="text-xs">
+            <summary className="font-semibold text-gray-700 dark:text-gray-300 cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
+              Model Assumptions ({results.assumptions.length})
+            </summary>
+            <ul className="mt-2 space-y-1 text-gray-600 dark:text-gray-400 pl-4">
+              {results.assumptions.map((assumption, idx) => (
+                <li key={idx}>• {assumption}</li>
+              ))}
+            </ul>
+          </details>
         </div>
       )}
     </div>

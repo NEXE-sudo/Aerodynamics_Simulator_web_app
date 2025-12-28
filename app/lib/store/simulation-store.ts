@@ -5,7 +5,7 @@
 
 import { create } from "zustand";
 import { SimulationResults } from "../../types";
-import { PhysicsEngine } from "../physics-engine";
+import { simulateLegacy } from "../physics/engine";
 
 interface SimulationState {
   // Parameters
@@ -14,6 +14,8 @@ interface SimulationState {
   thickness: number;
   camber: number;
   density: number;
+  lineCount: number; // Add this
+  setLineCount: (count: number) => void; // Add this
 
   // Results
   results: SimulationResults | null;
@@ -37,7 +39,8 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
   thickness: 0.12,
   camber: 0.02,
   density: 1.225,
-
+  lineCount: 15,
+  setLineCount: (count) => set({ lineCount: count }),
   results: null,
   isAnimating: false,
   showStreamlines: true,
@@ -49,7 +52,7 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
 
   runSimulation: () => {
     const state = get();
-    const results = PhysicsEngine.simulate({
+    const results = simulateLegacy({
       velocity: state.velocity,
       angleOfAttack: state.angleOfAttack,
       thickness: state.thickness,

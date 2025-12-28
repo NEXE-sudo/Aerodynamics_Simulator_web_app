@@ -36,6 +36,16 @@ export interface SimulationResults {
   dynamicPressure: number;
   stability: Stability;
   confidence: Confidence;
+
+  // NEW: Enhanced fields
+  flowState?: {
+    separation: "attached" | "marginal" | "separated" | "stalled";
+    separationConfidence: number;
+  };
+  stallRisk?: "none" | "warning" | "critical";
+  explanation?: PhysicsExplanation;
+  warnings?: string[];
+  assumptions?: string[];
 }
 
 export interface Point {
@@ -59,3 +69,11 @@ export type ProjectionFace =
   | "xz-back"
   | "yz-left"
   | "yz-right";
+
+export interface PhysicsExplanation {
+  regime: string;
+  liftMechanism: string;
+  dragSources: string;
+  keyInsight: string;
+  suggestion?: string;
+}

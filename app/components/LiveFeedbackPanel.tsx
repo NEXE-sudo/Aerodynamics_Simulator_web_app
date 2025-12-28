@@ -40,6 +40,36 @@ export default function LiveFeedbackPanel({
   previousAngle,
   previousVelocity,
 }: LiveFeedbackPanelProps) {
+  // Enhanced feedback using new physics explanation
+  if (results.explanation) {
+    // Check for critical warnings first
+    if (results.stallRisk === "critical") {
+      return {
+        type: "error",
+        icon: "stall",
+        title: "Critical: Stall Detected!",
+        message: results.explanation.keyInsight,
+        emoji: "🚨",
+      };
+    }
+
+    // Check for separation
+    if (
+      results.flowState?.separation === "separated" ||
+      results.flowState?.separation === "stalled"
+    ) {
+      return {
+        type: "error",
+        icon: "stall",
+        title: "Flow Separation Active",
+        message: `${results.explanation.keyInsight} ${
+          results.explanation.suggestion || ""
+        }`,
+        emoji: "⚠️",
+      };
+    }
+  }
+
   const generateFeedback = (): FeedbackMessage | null => {
     if (!previousResults || !previousAngle) return null;
 
