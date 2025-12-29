@@ -1,32 +1,50 @@
-import { SimulationResults } from "../types";
+import React, { useState } from "react";
 import { GitCompare, TrendingUp } from "lucide-react";
 
+interface SavedConfig {
+  angle: number;
+  velocity: number;
+  thickness: number;
+  timestamp: number;
+}
+
 interface ComparisonPanelProps {
-  currentResults: SimulationResults;
-  savedResults: SimulationResults | null;
-  onSaveCurrent: () => void;
+  currentAngle: number;
+  currentVelocity: number;
+  currentThickness: number;
 }
 
 export default function ComparisonPanel({
-  currentResults,
-  savedResults,
-  onSaveCurrent,
+  currentAngle,
+  currentVelocity,
+  currentThickness,
 }: ComparisonPanelProps) {
-  if (!savedResults) {
+  const [savedConfig, setSavedConfig] = useState<SavedConfig | null>(null);
+
+  const handleSave = () => {
+    setSavedConfig({
+      angle: currentAngle,
+      velocity: currentVelocity,
+      thickness: currentThickness,
+      timestamp: Date.now(),
+    });
+  };
+
+  if (!savedConfig) {
     return (
       <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-xl border-2 border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-3">
           <GitCompare size={20} className="text-teal-600" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Comparison Mode
+            Compare Settings
           </h3>
         </div>
         <div className="text-center py-8">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            No saved configuration to compare against.
+            Save your current settings as a baseline to compare against.
           </p>
           <button
-            onClick={onSaveCurrent}
+            onClick={handleSave}
             className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded transition"
           >
             Save Current as Baseline
@@ -36,76 +54,13 @@ export default function ComparisonPanel({
     );
   }
 
-  const calculateDifference = (current: number, saved: number) => {
-    const diff = current - saved;
-    const percentChange = saved !== 0 ? (diff / saved) * 100 : 0;
-    return { diff, percentChange };
-  };
+  const angleDiff = currentAngle - savedConfig.angle;
+  const velocityDiff = currentVelocity - savedConfig.velocity;
+  const thicknessDiff = currentThickness - savedConfig.thickness;
 
-  const getChangeColor = (percentChange: number) => {
-    if (Math.abs(percentChange) < 2) return "text-gray-600";
-    return percentChange > 0 ? "text-green-600" : "text-red-600";
-  };
-
-  const renderMetricComparison = (
-    label: string,
-    currentVal: number,
-    savedVal: number,
-    unit: string = ""
-  ) => {
-    const { diff, percentChange } = calculateDifference(currentVal, savedVal);
-    const isImprovement =
-      label.includes("Drag") || label.includes("Efficiency")
-        ? diff < 0
-        : diff > 0;
-
-    return (
-      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {label}
-          </span>
-          <span
-            className={`text-xs font-bold ${
-              isImprovement ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {isImprovement ? "↑" : "↓"} {Math.abs(percentChange).toFixed(1)}%
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Current
-            </div>
-            <div className="text-lg font-bold text-teal-600">
-              {currentVal.toFixed(3)}
-              {unit}
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              Baseline
-            </div>
-            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
-              {savedVal.toFixed(3)}
-              {unit}
-            </div>
-          </div>
-        </div>
-        {diff !== 0 && (
-          <div
-            className={`text-xs mt-2 pt-2 border-t border-gray-300 ${getChangeColor(
-              percentChange
-            )}`}
-          >
-            Δ = {diff > 0 ? "+" : ""}
-            {diff.toFixed(3)}
-            {unit}
-          </div>
-        )}
-      </div>
-    );
+  const formatDiff = (diff: number, unit: string = "") => {
+    const sign = diff > 0 ? "+" : "";
+    return `${sign}${diff.toFixed(1)}${unit}`;
   };
 
   return (
@@ -113,92 +68,158 @@ export default function ComparisonPanel({
       <div className="flex items-center gap-2 mb-3">
         <GitCompare size={20} className="text-teal-600" />
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Comparison Mode
+          Settings Comparison
         </h3>
       </div>
 
-      {/* Flow Regime Comparison */}
       <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-700 rounded-lg">
-        <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">
-          Flow Regime
+        <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-medium">
+          💡 Learning Tip
         </div>
-        <div className="grid grid-cols-2 gap-2 text-sm">
+        <p className="text-xs text-blue-900 dark:text-blue-200">
+          Compare how particles behave with different settings. Try changing one
+          thing at a time to see its effect!
+        </p>
+      </div>
+
+      {/* Angle Comparison */}
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Angle of Attack
+          </span>
+          {Math.abs(angleDiff) > 0.5 && (
+            <span
+              className={`text-xs font-bold ${
+                angleDiff > 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {angleDiff > 0 ? "↑" : "↓"} {formatDiff(angleDiff, "°")}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <span className="text-gray-600 dark:text-gray-400">Current:</span>
-            <div className="font-semibold text-blue-700">
-              {currentResults.regime.type}
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Current
+            </div>
+            <div className="text-lg font-bold text-teal-600">
+              {currentAngle.toFixed(1)}°
             </div>
           </div>
           <div>
-            <span className="text-gray-600 dark:text-gray-400">Baseline:</span>
-            <div className="font-semibold text-gray-700">
-              {savedResults.regime.type}
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Baseline
+            </div>
+            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
+              {savedConfig.angle.toFixed(1)}°
             </div>
           </div>
         </div>
       </div>
 
-      {/* Metric Comparisons */}
-      <div className="space-y-1">
-        {renderMetricComparison(
-          "Lift Coefficient (CL)",
-          currentResults.cl.nominal,
-          savedResults.cl.nominal
-        )}
-        {renderMetricComparison(
-          "Drag Coefficient (CD)",
-          currentResults.cd.nominal,
-          savedResults.cd.nominal
-        )}
-        {renderMetricComparison(
-          "Lift Force",
-          currentResults.lift.nominal,
-          savedResults.lift.nominal,
-          " N"
-        )}
-        {renderMetricComparison(
-          "Drag Force",
-          currentResults.drag.nominal,
-          savedResults.drag.nominal,
-          " N"
-        )}
-        {renderMetricComparison(
-          "L/D Ratio",
-          currentResults.efficiency.nominal,
-          savedResults.efficiency.nominal
-        )}
+      {/* Velocity Comparison */}
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Wind Speed
+          </span>
+          {Math.abs(velocityDiff) > 2 && (
+            <span
+              className={`text-xs font-bold ${
+                velocityDiff > 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {velocityDiff > 0 ? "↑" : "↓"} {formatDiff(velocityDiff, " m/s")}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Current
+            </div>
+            <div className="text-lg font-bold text-teal-600">
+              {currentVelocity} m/s
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Baseline
+            </div>
+            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
+              {savedConfig.velocity} m/s
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Reynolds and Stability Comparison */}
-      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-700 rounded-lg p-3">
-          <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">
-            Reynolds Number
-          </div>
-          <div className="text-lg font-bold text-purple-700 dark:text-purple-400">
-            {currentResults.reynolds.toExponential(2)}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            vs {savedResults.reynolds.toExponential(2)}
-          </div>
+      {/* Thickness Comparison */}
+      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Shape Thickness
+          </span>
+          {Math.abs(thicknessDiff) > 0.01 && (
+            <span
+              className={`text-xs font-bold ${
+                thicknessDiff > 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {thicknessDiff > 0 ? "↑" : "↓"} {formatDiff(thicknessDiff)}
+            </span>
+          )}
         </div>
-        <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-700 rounded-lg p-3">
-          <div className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">
-            Stability
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Current
+            </div>
+            <div className="text-lg font-bold text-teal-600">
+              {currentThickness.toFixed(2)}
+            </div>
           </div>
-          <div className="text-lg font-bold text-indigo-700 dark:text-indigo-400">
-            {currentResults.stability}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            vs {savedResults.stability}
+          <div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Baseline
+            </div>
+            <div className="text-lg font-bold text-gray-700 dark:text-gray-300">
+              {savedConfig.thickness.toFixed(2)}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Summary Message */}
+      {(Math.abs(angleDiff) > 0.5 ||
+        Math.abs(velocityDiff) > 2 ||
+        Math.abs(thicknessDiff) > 0.01) && (
+        <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-700 rounded-lg">
+          <p className="text-xs text-indigo-900 dark:text-indigo-200">
+            <strong>What changed:</strong>{" "}
+            {Math.abs(angleDiff) > 0.5
+              ? `Angle is ${angleDiff > 0 ? "higher" : "lower"} (${formatDiff(
+                  angleDiff,
+                  "°"
+                )}). `
+              : ""}
+            {Math.abs(velocityDiff) > 2
+              ? `Wind is ${
+                  velocityDiff > 0 ? "faster" : "slower"
+                } (${formatDiff(velocityDiff, " m/s")}). `
+              : ""}
+            {Math.abs(thicknessDiff) > 0.01
+              ? `Shape is ${thicknessDiff > 0 ? "thicker" : "thinner"}. `
+              : ""}
+            Watch how these changes affect particle behavior!
+          </p>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={onSaveCurrent}
+          onClick={handleSave}
           className="flex-1 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded transition text-sm font-medium flex items-center justify-center gap-2"
         >
           <TrendingUp size={16} />

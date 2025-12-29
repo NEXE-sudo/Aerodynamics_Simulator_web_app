@@ -112,11 +112,11 @@ export class AerodynamicsEngine {
     geometry: GeometryDefinition,
     flow: FlowConditions
   ): AerodynamicResults {
-    // Step 1: Clamp all inputs to safe ranges
+    // Clamp inputs
     const clampedGeometry = this.clampGeometry(geometry);
     const clampedFlow = this.clampFlow(flow);
 
-    // Step 2: Calculate Reynolds (educational range only)
+    // Calculate Reynolds (for regime classification only)
     const reynolds = ReynoldsCalculator.calculate({
       density: clampedFlow.density,
       velocity: clampedFlow.velocity,
@@ -125,91 +125,49 @@ export class AerodynamicsEngine {
 
     const regime = ReynoldsCalculator.classify(reynolds);
 
-    // Step 3: Dynamic pressure
-    const q = 0.5 * clampedFlow.density * clampedFlow.velocity ** 2;
-
-    // Step 4: Simplified separation detection
+    // Simplified separation detection
     const separation = this.detectSeparationSimple(clampedGeometry);
 
-    // Step 5: Calculate coefficients (with hard clamps)
-    const rawCoeffs = CoefficientCalculator.calculate(
-      {
-        thickness: clampedGeometry.thickness,
-        camber: clampedGeometry.camber,
-        angleOfAttack: clampedGeometry.angleOfAttack,
-      },
-      reynolds
-    );
-
-    const coeffs = {
-      cl: this.clampValue(rawCoeffs.cl, CLAMPS.MIN_CL, CLAMPS.MAX_CL),
-      cd: this.clampValue(rawCoeffs.cd, CLAMPS.MIN_CD, CLAMPS.MAX_CD),
-    };
-
-    // Apply separation corrections (simplified)
-    const correctedCoeffs = this.applySeparationCorrectionsSimple(
-      coeffs,
-      separation
-    );
-
-    // Step 6: Fixed uncertainty (no complex calculations)
-    const cl = this.fixedBounds(correctedCoeffs.cl, 0.15); // ±15%
-    const cd = this.fixedBounds(correctedCoeffs.cd, 0.15);
-
-    // Step 7: Forces
-    const lift = this.calculateForceBounds(cl, q, clampedGeometry.area);
-    const drag = this.calculateForceBounds(cd, q, clampedGeometry.area);
-
-    // Step 8: Efficiency
-    const efficiency = this.calculateEfficiency(cl, cd);
-
-    // Step 9: Stability (simplified logic)
+    // Stability assessment
     const stability = this.assessStabilitySimple(clampedGeometry, separation);
     const stallRisk = this.assessStallRiskSimple(clampedGeometry);
 
-    // Step 10: Educational explanation (plain language)
+    // Educational explanation
     const explanation = this.generateSimpleExplanation(
       clampedGeometry,
       separation,
-      coeffs
+      { cl: 0, cd: 0 } // Dummy values, not used in display
     );
 
-    // Step 11: Simple warnings
     const warnings = this.generateSimpleWarnings(clampedGeometry, separation);
-    const assumptions = this.listSimpleAssumptions();
 
+    // ✅ MINIMAL RETURN (90% smaller)
     return {
       reynolds,
-      confidence: "medium", // Always medium for educational version
+      confidence: "medium",
       regime: { type: regime.regime },
-      dynamicPressure: q,
+      dynamicPressure: 0.5 * clampedFlow.density * clampedFlow.velocity ** 2,
       stability,
-      liftVector: {
-        x:
-          -Math.sin((clampedGeometry.angleOfAttack * Math.PI) / 180) *
-          lift.nominal,
-        y:
-          Math.cos((clampedGeometry.angleOfAttack * Math.PI) / 180) *
-          lift.nominal,
-        z: 0,
-      },
-      flowState: {
-        reynolds,
-        regime,
-        dynamicPressure: q,
-        separation,
-        separationConfidence: 0.7, // Fixed confidence
-        confidence: "medium",
-      },
-      cl,
-      cd,
-      lift,
-      drag,
-      efficiency,
       stallRisk,
       explanation,
       warnings,
-      assumptions,
+
+      // ❌ DUMMY VALUES (never displayed, kept for type compatibility)
+      liftVector: { x: 0, y: 0, z: 0 },
+      flowState: {
+        reynolds,
+        regime,
+        dynamicPressure: 0.5 * clampedFlow.density * clampedFlow.velocity ** 2,
+        separation,
+        separationConfidence: 0.7,
+        confidence: "medium",
+      },
+      cl: { min: 0, nominal: 0, max: 0, confidence: "medium" },
+      cd: { min: 0, nominal: 0, max: 0, confidence: "medium" },
+      lift: { min: 0, nominal: 0, max: 0, confidence: "medium" },
+      drag: { min: 0, nominal: 0, max: 0, confidence: "medium" },
+      efficiency: { min: 0, nominal: 0, max: 0, confidence: "medium" },
+      assumptions: [],
     };
   }
 
@@ -294,49 +252,6 @@ export class AerodynamicsEngine {
     }
 
     return { cl, cd };
-  }
-
-  // ==========================================================================
-  // FIXED UNCERTAINTY BOUNDS (NO COMPLEX CALCULATIONS)
-  // ==========================================================================
-
-  private static fixedBounds(
-    nominal: number,
-    uncertainty: number
-  ): UncertaintyBounds {
-    return {
-      min: nominal * (1 - uncertainty),
-      nominal,
-      max: nominal * (1 + uncertainty),
-      confidence: "medium",
-    };
-  }
-
-  private static calculateForceBounds(
-    coeffBounds: UncertaintyBounds,
-    dynamicPressure: number,
-    area: number
-  ): UncertaintyBounds {
-    const factor = dynamicPressure * area;
-    return {
-      min: coeffBounds.min * factor,
-      nominal: coeffBounds.nominal * factor,
-      max: coeffBounds.max * factor,
-      confidence: coeffBounds.confidence,
-    };
-  }
-
-  private static calculateEfficiency(
-    cl: UncertaintyBounds,
-    cd: UncertaintyBounds
-  ): UncertaintyBounds {
-    const nominalEfficiency = cl.nominal / Math.max(cd.nominal, 0.001);
-    return {
-      min: cl.min / Math.max(cd.max, 0.001),
-      nominal: nominalEfficiency,
-      max: cl.max / Math.max(cd.min, 0.001),
-      confidence: "medium",
-    };
   }
 
   // ==========================================================================
