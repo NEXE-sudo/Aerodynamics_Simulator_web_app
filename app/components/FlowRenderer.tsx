@@ -11,7 +11,6 @@ interface FlowRendererProps {
 
 export default function FlowRenderer({
   simulation,
-  streamlines,
   isAnimating,
 }: FlowRendererProps) {
   const particlesRef = useRef<THREE.InstancedMesh>(null);
@@ -19,7 +18,7 @@ export default function FlowRenderer({
   useFrame((state, delta) => {
     if (!isAnimating) return;
 
-    simulation.update(delta);
+    simulation.update(delta); // Uses clamped delta internally
 
     const positions = simulation.getPositions();
     const count = positions.length / 3;
@@ -40,7 +39,7 @@ export default function FlowRenderer({
   });
 
   const particleGeometry = useMemo(
-    () => new THREE.SphereGeometry(0.035, 6, 6),
+    () => new THREE.SphereGeometry(0.04, 6, 6),
     []
   );
   const particleMaterial = useMemo(
@@ -59,25 +58,6 @@ export default function FlowRenderer({
         ref={particlesRef}
         args={[particleGeometry, particleMaterial, simulation.particles.length]}
       />
-
-      {streamlines.map((line, i) => (
-        <line key={i}>
-          <bufferGeometry>
-            <bufferAttribute
-              attach="attributes-position"
-              count={line.length}
-              array={new Float32Array(line.flatMap((v) => [v.x, v.y, v.z]))}
-              itemSize={3}
-            />
-          </bufferGeometry>
-          <lineBasicMaterial
-            color="#60a5fa"
-            transparent
-            opacity={0.25}
-            linewidth={2}
-          />
-        </line>
-      ))}
     </group>
   );
 }
