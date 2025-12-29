@@ -47,50 +47,17 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
 
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
 
-  // Calculate geometry bounds for proper scaling
-  const geometryBounds = useMemo(() => {
-    if (geometry.length === 0) {
-      return { minX: 0, maxX: 1, minY: -0.1, maxY: 0.1, width: 1, height: 0.2 };
-    }
-    let minX = Infinity,
-      maxX = -Infinity;
-    let minY = Infinity,
-      maxY = -Infinity;
-
-    geometry.forEach((p: Point) => {
-      minX = Math.min(minX, p.x);
-      maxX = Math.max(maxX, p.x);
-      minY = Math.min(minY, p.y);
-      maxY = Math.max(maxY, p.y);
-    });
-
-    return {
-      minX,
-      maxX,
-      minY,
-      maxY,
-      width: maxX - minX,
-      height: maxY - minY,
-    };
-  }, [geometry]);
-
   const { posArr, velArr, prevArr, initialData } = useMemo(() => {
     const pos = new Float32Array(numParticles * 3);
     const vel = new Float32Array(numParticles * 3);
     const prev = new Float32Array(numParticles * 3);
     const init = new Float32Array(numParticles * 3);
 
-    const spawnMargin = geometryBounds.height * 2;
-    const spawnXStart = geometryBounds.minX - geometryBounds.width * 0.5;
-    const spawnXRange = geometryBounds.width * 0.3;
-    const spawnYRange = geometryBounds.height + spawnMargin * 2;
-    const spawnZRange = geometryBounds.height * 1.5;
-
     for (let i = 0; i < numParticles; i++) {
       const i3 = i * 3;
-      const x = spawnXStart + Math.random() * spawnXRange;
-      const y = geometryBounds.minY - spawnMargin + Math.random() * spawnYRange;
-      const z = (Math.random() - 0.5) * spawnZRange;
+      const x = Math.random() * 10 - 5;
+      const y = Math.random() * 4 - 2;
+      const z = (Math.random() - 0.5) * 1.0;
 
       pos[i3] = x;
       pos[i3 + 1] = y;
@@ -109,15 +76,7 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
       vel[i3 + 2] = (Math.random() - 0.5) * 0.05;
     }
     return { posArr: pos, velArr: vel, prevArr: prev, initialData: init };
-  }, [geometry, geometryBounds]);
-
-  // Pre-allocated vectors for collision detection
-  const tempCurrentPos = useMemo(() => new THREE.Vector3(), []);
-  const tempVelVector = useMemo(() => new THREE.Vector3(), []);
-  const tempNextPos = useMemo(() => new THREE.Vector3(), []);
-  const tempDirection = useMemo(() => new THREE.Vector3(), []);
-  const tempReflected = useMemo(() => new THREE.Vector3(), []);
-  const tempIncomingVel = useMemo(() => new THREE.Vector3(), []);
+  }, [geometry]);
 
   useFrame((state, delta) => {
     if (!particlesRef.current || !active) return;
@@ -126,13 +85,7 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
     const angleRad = -(angle * THREE.MathUtils.DEG2RAD);
     if (groupRef.current) groupRef.current.rotation.z = angleRad;
 
-    const step = Math.min(delta, 0.033) * velocity * 2.0;
-
-    const resetXThreshold = geometryBounds.maxX + geometryBounds.width * 1.5;
-    const spawnXStart = geometryBounds.minX - geometryBounds.width * 0.5;
-    const spawnMargin = geometryBounds.height * 2;
-    const spawnYRange = geometryBounds.height + spawnMargin * 2;
-    const spawnZRange = geometryBounds.height * 1.5;
+    const step = velocity * delta * 0.2;
 
     for (let i = 0; i < numParticles; i++) {
       const i3 = i * 3;
@@ -141,24 +94,28 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
       prevArr[i3 + 1] = pos.array[i3 + 1];
       prevArr[i3 + 2] = pos.array[i3 + 2];
 
-      tempCurrentPos.set(pos.array[i3], pos.array[i3 + 1], pos.array[i3 + 2]);
+      const currentPos = new THREE.Vector3(
+        pos.array[i3],
+        pos.array[i3 + 1],
+        pos.array[i3 + 2]
+      );
 
-      tempVelVector.set(
+      const velVector = new THREE.Vector3(
         velArr[i3] * step,
         velArr[i3 + 1] * step,
         velArr[i3 + 2] * step
       );
 
-      tempNextPos.copy(tempCurrentPos).add(tempVelVector);
-      let finalPos = tempNextPos;
+      const nextPos = currentPos.clone().add(velVector);
+      let finalPos = nextPos;
       let collision = false;
 
-      if (meshRef.current && tempVelVector.length() > 0.001) {
-        tempDirection.copy(tempVelVector).normalize();
-        const distance = tempVelVector.length();
+      if (meshRef.current && velVector.length() > 0.001) {
+        const direction = velVector.clone().normalize();
+        const distance = velVector.length();
 
-        raycaster.set(tempCurrentPos, tempDirection);
-        raycaster.far = distance * 2.0;
+        raycaster.set(currentPos, direction);
+        raycaster.far = distance * 1.2;
 
         const intersects = raycaster.intersectObject(meshRef.current, false);
 
@@ -168,34 +125,33 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
 
           finalPos = hit.point
             .clone()
-            .add(hit.face!.normal.clone().multiplyScalar(0.02));
+            .add(hit.face!.normal.clone().multiplyScalar(0.01));
 
-          tempIncomingVel.set(velArr[i3], velArr[i3 + 1], velArr[i3 + 2]);
-          tempReflected
-            .copy(tempIncomingVel)
+          const incomingVel = new THREE.Vector3(
+            velArr[i3],
+            velArr[i3 + 1],
+            velArr[i3 + 2]
+          );
+          const reflected = incomingVel
+            .clone()
             .reflect(hit.face!.normal)
             .multiplyScalar(0.7);
 
-          velArr[i3] = tempReflected.x;
-          velArr[i3 + 1] = tempReflected.y;
-          velArr[i3 + 2] = tempReflected.z;
+          velArr[i3] = reflected.x;
+          velArr[i3 + 1] = reflected.y;
+          velArr[i3 + 2] = reflected.z;
         }
       }
 
       if (!collision) {
-        const distToCenter = Math.abs(finalPos.z);
-        const zVariation = geometryBounds.height * 0.1 * (Math.random() - 0.5);
-        velArr[i3 + 2] += zVariation;
-
-        const maxZ = geometryBounds.height * 0.75;
-        velArr[i3 + 2] = Math.max(-maxZ, Math.min(maxZ, velArr[i3 + 2]));
+        velArr[i3 + 2] += (Math.random() - 0.5) * 0.002;
+        velArr[i3 + 2] = Math.max(-0.05, Math.min(0.05, velArr[i3 + 2]));
       }
 
-      if (finalPos.x > resetXThreshold) {
-        finalPos.x = spawnXStart;
-        finalPos.y =
-          geometryBounds.minY - spawnMargin + Math.random() * spawnYRange;
-        finalPos.z = (Math.random() - 0.5) * spawnZRange;
+      if (finalPos.x > 5) {
+        finalPos.x = -5;
+        finalPos.y = initialData[i3 + 1];
+        finalPos.z = initialData[i3 + 2];
 
         velArr[i3] = 0.2;
         velArr[i3 + 1] = 0;
@@ -208,18 +164,6 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
     }
     pos.needsUpdate = true;
   });
-
-  // Create streamline grid based on geometry scale
-  const streamlineGrid = useMemo(() => {
-    const zPositions = [-0.6, -0.3, 0, 0.3, 0.6].map(
-      (z) => z * geometryBounds.height * 2
-    );
-    const yStep = geometryBounds.height * 0.8;
-    const yPositions = [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].map((y) => y * yStep);
-    const xLength = geometryBounds.width * 8;
-
-    return { zPositions, yPositions, xLength };
-  }, [geometryBounds]);
 
   return (
     <group ref={groupRef}>
@@ -240,16 +184,11 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
         <meshStandardMaterial visible={false} />
       </mesh>
 
-      {streamlineGrid.zPositions.map((z) =>
-        streamlineGrid.yPositions.map((y) => (
+      {[-0.6, -0.3, 0, 0.3, 0.6].map((z) =>
+        [-1.5, -1, -0.5, 0, 0.5, 1, 1.5].map((y) => (
           <mesh key={`${z}-${y}`} position={[0, y, z]}>
-            <boxGeometry args={[streamlineGrid.xLength, 0.008, 0.008]} />
-            <meshBasicMaterial
-              color="#60a5fa"
-              transparent
-              opacity={0.15}
-              depthWrite={false}
-            />
+            <boxGeometry args={[10, 0.008, 0.008]} />
+            <meshBasicMaterial color="#60a5fa" transparent opacity={0.15} />
           </mesh>
         ))
       )}
@@ -267,10 +206,8 @@ function PhysicsFlowVolume({ velocity, angle, geometry, active }: any) {
           size={0.04}
           color="#93c5fd"
           transparent
-          opacity={0.7}
+          opacity={0.6}
           blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          sizeAttenuation={true}
         />
       </points>
     </group>
