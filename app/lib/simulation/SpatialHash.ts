@@ -1,3 +1,12 @@
+/**
+ * SpatialHash.ts
+ * ==============
+ * Spatial acceleration structure for collision detection.
+ *
+ * Divides 3D space into grid cells to avoid O(n²) collision checks.
+ * Unchanged from original implementation.
+ */
+
 interface CollisionObject {
   center: [number, number, number];
   radius: number;

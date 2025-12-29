@@ -1,3 +1,14 @@
+/**
+ * AeroPlatform.tsx
+ * ================
+ * Main application component - state management and layout.
+ *
+ * Changes:
+ * - Removed showStreamlines state
+ * - Simplified prop drilling to child components
+ * - Cleaner state structure
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -29,19 +40,26 @@ export default function AeroPlatform() {
   const [thickness, setThickness] = useState(0.12);
   const [camber, setCamber] = useState(0.02);
 
+  // Learning mode tracking
   const [previousResults, setPreviousResults] =
     useState<SimulationResults | null>(null);
   const [previousAngle, setPreviousAngle] = useState<number | null>(null);
   const [previousVelocity, setPreviousVelocity] = useState<number | null>(null);
 
+  // Model upload
   const [uploadedModel, setUploadedModel] = useState<UploadedModel | null>(
     null
   );
+
+  // Animation control
   const [isAnimating, setIsAnimating] = useState(true);
 
+  // Comparison mode
   const [savedResults, setSavedResults] = useState<SimulationResults | null>(
     null
   );
+
+  // Current results
   const [results, setResults] = useState<SimulationResults | null>(null);
   const [geometry, setGeometry] = useState<Point[]>([]);
 
@@ -66,6 +84,7 @@ export default function AeroPlatform() {
       geometry: geometryType,
     };
 
+    // Save previous results for learning mode
     if (results) {
       setPreviousResults(results);
       setPreviousAngle(angleOfAttack);
@@ -82,6 +101,7 @@ export default function AeroPlatform() {
     setGeometry(geom);
   };
 
+  // Re-run simulation when parameters change
   useEffect(() => {
     runSimulation();
   }, [
@@ -114,7 +134,7 @@ export default function AeroPlatform() {
           <ModeSelector mode={mode} onModeChange={setMode} />
         </div>
 
-        {/* NEW LAYOUT: Three columns for better visibility */}
+        {/* Three Column Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr_380px] gap-4">
           {/* LEFT COLUMN - Controls */}
           <aside className="space-y-4">
@@ -173,7 +193,7 @@ export default function AeroPlatform() {
             )}
           </main>
 
-          {/* RIGHT COLUMN - Results (Always Visible!) */}
+          {/* RIGHT COLUMN - Results */}
           <aside className="space-y-4">
             {results && (
               <>
@@ -199,8 +219,8 @@ export default function AeroPlatform() {
         <footer className="mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-800">
           <div className="text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-              <strong>Educational Aerodynamics Platform</strong> • Free Web
-              Version
+              <strong>Educational Aerodynamics Platform</strong> •
+              Particle-Based Flow Visualization
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500">
               Simplified models for learning • Not for professional use

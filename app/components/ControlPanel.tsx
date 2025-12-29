@@ -1,3 +1,14 @@
+/**
+ * ControlPanel.tsx
+ * ================
+ * User controls for simulation parameters.
+ *
+ * Changes:
+ * - Removed showStreamlines toggle
+ * - Removed onShowStreamlinesChange prop
+ * - Cleaner interface with single animation toggle
+ */
+
 import { Mode, GeometryType } from "../types";
 import { Settings, RotateCw } from "lucide-react";
 import SliderInput from "./ui/SliderInput";
@@ -12,7 +23,6 @@ interface ControlPanelProps {
   density: number;
   length: number;
   area: number;
-  showStreamlines: boolean;
   isAnimating: boolean;
   onGeometryTypeChange: (type: GeometryType) => void;
   onThicknessChange: (v: number) => void;
@@ -22,11 +32,9 @@ interface ControlPanelProps {
   onDensityChange: (v: number) => void;
   onLengthChange: (v: number) => void;
   onAreaChange: (v: number) => void;
-  onShowStreamlinesChange: (v: boolean) => void;
   onAnimatingChange: (v: boolean) => void;
 }
 
-// SIMPLIFIED CONTROLS - Educational ranges only
 const SIMPLE_RANGES = {
   angle: { min: -15, max: 20, step: 1 },
   velocity: { min: 10, max: 50, step: 2 },
@@ -35,7 +43,6 @@ const SIMPLE_RANGES = {
 };
 
 export default function ControlPanel(props: ControlPanelProps) {
-  // Reset to safe defaults
   const handleReset = () => {
     props.onAngleChange(5);
     props.onVelocityChange(20);
@@ -43,7 +50,6 @@ export default function ControlPanel(props: ControlPanelProps) {
     props.onCamberChange(0.02);
     props.onGeometryTypeChange("symmetric");
     props.onAnimatingChange(true);
-    props.onShowStreamlinesChange(true);
   };
 
   return (
@@ -123,36 +129,25 @@ export default function ControlPanel(props: ControlPanelProps) {
         />
       </div>
 
-      {/* Simple Toggles */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-        <button
-          onClick={() => props.onShowStreamlinesChange(!props.showStreamlines)}
-          className={`w-full rounded-lg px-4 py-2.5 font-medium transition ${
-            props.showStreamlines
-              ? "bg-teal-600 hover:bg-teal-700 text-white"
-              : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
-          }`}
-        >
-          {props.showStreamlines ? "✓ Flow Lines Visible" : "Show Flow Lines"}
-        </button>
-
+      {/* Animation Toggle */}
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={() => props.onAnimatingChange(!props.isAnimating)}
           className={`w-full rounded-lg px-4 py-2.5 font-medium transition ${
             props.isAnimating
               ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-green-100 dark:bg-green-800 hover:bg-gray-200 dark:hover:bg-green-700 text-green-900 dark:text-gray-100"
+              : "bg-green-600 hover:bg-green-700 text-white"
           }`}
         >
-          {props.isAnimating ? "⏸ Animation Off" : "▶ Animation On"}
+          {props.isAnimating ? "⏸ Pause Animation" : "▶ Play Animation"}
         </button>
       </div>
 
       {/* Educational Note */}
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-          💡 <strong>Tip:</strong> Start with small angles (5-8°) and low
-          speeds. Extreme settings may cause unrealistic behavior.
+          💡 <strong>Tip:</strong> Watch particle colors change with angle and
+          speed. Blue particles are slower, yellow particles are faster.
         </div>
       </div>
     </div>
