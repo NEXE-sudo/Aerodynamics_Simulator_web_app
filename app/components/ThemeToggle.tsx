@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
@@ -41,12 +43,13 @@ export default function ThemeToggle() {
     localStorage.setItem("theme", newDarkMode ? "dark" : "light");
   };
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch - render placeholder until mounted
   if (!mounted) {
     return (
       <button
-        className="fixed top-4 right-4 z-50 p-3 rounded-full glass-effect hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl group"
+        className="fixed top-4 right-4 z-50 p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg border border-gray-200 dark:border-gray-700"
         aria-label="Toggle theme"
+        disabled
       >
         <div className="w-5 h-5" />
       </button>

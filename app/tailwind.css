@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Configure dark mode for Tailwind v4 */
+@theme {
+  --color-background: 0 0% 100%;
+  --color-foreground: 222.2 84% 4.9%;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-background: 222.2 84% 4.9%;
+    --color-foreground: 210 40% 98%;
+  }
+}
+
+/* Override with class-based dark mode */
+.dark {
+  color-scheme: dark;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
